@@ -9827,6 +9827,9 @@ var _elm_lang$window$Window$subMap = F2(
 	});
 _elm_lang$core$Native_Platform.effectManagers['Window'] = {pkg: 'elm-lang/window', init: _elm_lang$window$Window$init, onEffects: _elm_lang$window$Window$onEffects, onSelfMsg: _elm_lang$window$Window$onSelfMsg, tag: 'sub', subMap: _elm_lang$window$Window$subMap};
 
+var _loovjo$traffic$Base$dist = function (pos) {
+	return _elm_lang$core$Basics$sqrt((pos.x * pos.x) + (pos.y * pos.y));
+};
 var _loovjo$traffic$Base$toList = function (hmm) {
 	var _p0 = hmm;
 	if (_p0.ctor === 'Just') {
@@ -9859,6 +9862,10 @@ var _loovjo$traffic$Base$Player = F3(
 var _loovjo$traffic$Base$You = F2(
 	function (a, b) {
 		return {ip: a, youId: b};
+	});
+var _loovjo$traffic$Base$TotalState = F2(
+	function (a, b) {
+		return {state: a, you: b};
 	});
 
 var _loovjo$traffic$ClientBase$keyboardMap = {
@@ -10920,7 +10927,9 @@ var _loovjo$traffic$ClientBase$Model = function (a) {
 											return function (l) {
 												return function (m) {
 													return function (n) {
-														return {gameState: a, you: b, lastTime: c, size: d, currentCombo: e, showDebug: f, err: g, webSocketUrl: h, scroll: i, zoom: j, sideScroll: k, scrollSpeed: l, lastMousePos: m, pressing: n};
+														return function (o) {
+															return {gameState: a, you: b, lastTime: c, size: d, currentCombo: e, showDebug: f, err: g, webSocketUrl: h, scroll: i, scrollCenter: j, zoom: k, sideScroll: l, scrollSpeed: m, lastMousePos: n, pressing: o};
+														};
 													};
 												};
 											};
@@ -11008,10 +11017,6 @@ var _loovjo$traffic$JsonDecode$decodeGameState = A3(
 	'players',
 	_elm_lang$core$Json_Decode$list(_loovjo$traffic$JsonDecode$decodePlayer),
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_loovjo$traffic$Base$GameState));
-var _loovjo$traffic$JsonDecode$TotalState = F2(
-	function (a, b) {
-		return {state: a, you: b};
-	});
 var _loovjo$traffic$JsonDecode$decodeTotalState = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 	'you',
@@ -11020,7 +11025,7 @@ var _loovjo$traffic$JsonDecode$decodeTotalState = A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 		'gameState',
 		_loovjo$traffic$JsonDecode$decodeGameState,
-		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_loovjo$traffic$JsonDecode$TotalState)));
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_loovjo$traffic$Base$TotalState)));
 
 var _loovjo$traffic$Update_Keyboard$keyPress = F2(
 	function (model, button) {
@@ -11031,17 +11036,42 @@ var _loovjo$traffic$Update_Keyboard$keyPress = F2(
 	});
 var _loovjo$traffic$Update_Keyboard$keyUp = F2(
 	function (model, button) {
-		return A2(
+		return _elm_lang$core$Native_Utils.eq(button, 'SHIFT') ? A2(
+			_elm_lang$core$Platform_Cmd_ops['!'],
+			_elm_lang$core$Native_Utils.update(
+				model,
+				{scrollCenter: _elm_lang$core$Maybe$Nothing}),
+			{ctor: '[]'}) : A2(
 			_elm_lang$core$Platform_Cmd_ops['!'],
 			model,
 			{ctor: '[]'});
 	});
 var _loovjo$traffic$Update_Keyboard$keyDown = F2(
 	function (model, button) {
-		return A2(
-			_elm_lang$core$Platform_Cmd_ops['!'],
-			model,
-			{ctor: '[]'});
+		if (_elm_lang$core$Native_Utils.eq(button, 'SHIFT')) {
+			var _p0 = model.lastMousePos;
+			if (_p0.ctor === 'Just') {
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							scrollCenter: _elm_lang$core$Maybe$Just(
+								A2(_loovjo$traffic$ClientBase$toPixels, model, _p0._0))
+						}),
+					{ctor: '[]'});
+			} else {
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					{ctor: '[]'});
+			}
+		} else {
+			return A2(
+				_elm_lang$core$Platform_Cmd_ops['!'],
+				model,
+				{ctor: '[]'});
+		}
 	});
 
 var _loovjo$traffic$Update_Mouse$mouseMoved = F2(
@@ -11207,56 +11237,75 @@ var _loovjo$traffic$Update_Update$update = F2(
 					} else {
 						var delta = time - _p9._0;
 						var _p10 = function () {
-							var _p11 = {ctor: '_Tuple2', _0: model.lastMousePos, _1: model.size};
+							var _p11 = {ctor: '_Tuple2', _0: model.lastMousePos, _1: model.scrollCenter};
 							if (((_p11.ctor === '_Tuple2') && (_p11._0.ctor === 'Just')) && (_p11._1.ctor === 'Just')) {
-								var _p12 = _p11._0._0;
-								var cmp = function (f) {
-									return A2(
-										F2(
-											function (x, y) {
-												return x * y;
-											}),
-										delta * model.scrollSpeed,
-										(_elm_lang$core$Native_Utils.cmp(
-											f(
-												A2(_loovjo$traffic$ClientBase$toPixels, model, _p12)),
-											model.sideScroll) < 0) ? -1 : ((_elm_lang$core$Native_Utils.cmp(
-											f(
-												A2(_loovjo$traffic$ClientBase$toPixels, model, _p12)),
-											f(_p11._1._0) - model.sideScroll) > 0) ? 1 : 0));
-								};
-								return {
-									ctor: '_Tuple2',
-									_0: cmp(
-										function (_) {
-											return _.x;
-										}),
-									_1: cmp(
-										function (_) {
-											return _.y;
-										})
-								};
+								var _p12 = _p11._1._0;
+								var mouse = A2(
+									_elm_lang$core$Debug$log,
+									'Mouse',
+									A2(_loovjo$traffic$ClientBase$toPixels, model, _p11._0._0));
+								var diff = A2(_loovjo$traffic$Base$Position, mouse.x - _p12.x, mouse.y - _p12.y);
+								var distDiv = A2(
+									_elm_lang$core$Basics$min,
+									200,
+									A2(
+										_elm_lang$core$Basics$max,
+										20,
+										_loovjo$traffic$Base$dist(diff)));
+								return {ctor: '_Tuple2', _0: ((diff.x * delta) / distDiv) * 40, _1: ((diff.y * delta) / distDiv) * 40};
 							} else {
 								return {ctor: '_Tuple2', _0: 0, _1: 0};
 							}
 						}();
 						var sDx = _p10._0;
 						var sDy = _p10._1;
+						var modelScroll = _elm_lang$core$Native_Utils.update(
+							model_,
+							{
+								scroll: {x: model.scroll.x + sDx, y: model.scroll.y + sDy}
+							});
+						var newMouse = function () {
+							var _p13 = model.lastMousePos;
+							if (_p13.ctor === 'Just') {
+								return _elm_lang$core$Maybe$Just(
+									A2(
+										_loovjo$traffic$ClientBase$fromPixels,
+										modelScroll,
+										A2(_loovjo$traffic$ClientBase$toPixels, model, _p13._0)));
+							} else {
+								return _elm_lang$core$Maybe$Nothing;
+							}
+						}();
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
-								model_,
-								{
-									scroll: {x: model.scroll.x + sDx, y: model.scroll.y + sDy}
-								}),
+								modelScroll,
+								{lastMousePos: newMouse}),
 							{ctor: '[]'});
 					}
 				default:
-					var _p13 = A2(_elm_lang$core$Debug$log, 'You\'ve got mail!', _p0._0);
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{ctor: '[]'});
+					var _p14 = A2(_elm_lang$core$Json_Decode$decodeString, _loovjo$traffic$JsonDecode$decodeTotalState, _p0._0);
+					if (_p14.ctor === 'Ok') {
+						var _p15 = _p14._0;
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									gameState: _p15.state,
+									you: _elm_lang$core$Maybe$Just(_p15.you)
+								}),
+							{
+								ctor: '::',
+								_0: A2(_elm_lang$websocket$WebSocket$send, model.webSocketUrl, 'Hello!'),
+								_1: {ctor: '[]'}
+							});
+					} else {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+					}
 			}
 		}
 	});
@@ -11401,6 +11450,7 @@ var _loovjo$traffic$Main$init = function (flags) {
 			err: _elm_lang$core$Maybe$Nothing,
 			webSocketUrl: flags.webSocketUrl,
 			scroll: A2(_loovjo$traffic$Base$Position, 3, 3),
+			scrollCenter: _elm_lang$core$Maybe$Nothing,
 			zoom: 10,
 			sideScroll: 100,
 			scrollSpeed: 100,

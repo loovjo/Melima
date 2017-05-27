@@ -15,11 +15,14 @@ infixr 2 !!
 --
 -- [ a, b, c ] ++ toList d
 
-(toList) : Maybe a -> List a
-(toList) hmm =
+toList : Maybe a -> List a
+toList hmm =
     case hmm of
         Just item -> [item]
         Nothing -> []
+
+dist : Position -> Float
+dist pos = pos.x * pos.x + pos.y * pos.y |> sqrt
 
 type alias Position = {x : Float, y : Float}
 
@@ -38,3 +41,4 @@ type alias You =
     , youId : Maybe String
     }
 
+type alias TotalState = {state : GameState, you : You}

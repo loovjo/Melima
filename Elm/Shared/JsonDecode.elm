@@ -5,7 +5,6 @@ import Json.Decode.Pipeline as P
 
 import Base exposing (..)
 
--- Simple helpers
 
 decodePosition : Decoder Position
 decodePosition =
@@ -13,7 +12,6 @@ decodePosition =
         |> P.required "x" Decode.float
         |> P.required "y" Decode.float
 
-type alias TotalState = {state : GameState, you : You}
 
 decodeTotalState : Decoder TotalState
 decodeTotalState =

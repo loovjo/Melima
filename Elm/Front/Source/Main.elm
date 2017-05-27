@@ -42,6 +42,7 @@ init flags =
         , webSocketUrl = flags.webSocketUrl
 
         , scroll = Position 3 3
+        , scrollCenter = Nothing
         , zoom = 10
 
         , sideScroll = 100

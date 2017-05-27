@@ -25,12 +25,13 @@ type alias Model =
     , webSocketUrl : String
 
     , scroll : Position -- In units
+    , scrollCenter : Maybe Position -- On screen
     , zoom : Float -- In pixel/unit
 
     , sideScroll : Float
     , scrollSpeed : Float
 
-    , lastMousePos : Maybe Position
+    , lastMousePos : Maybe Position -- In units
     , pressing : Bool
     }
 

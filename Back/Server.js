@@ -6169,55 +6169,290 @@ var _elm_lang$core$Tuple$first = function (_p6) {
 	return _p7._0;
 };
 
+var _user$project$Base$dist = function (pos) {
+	return _elm_lang$core$Basics$sqrt((pos.x * pos.x) + (pos.y * pos.y));
+};
+var _user$project$Base$toList = function (hmm) {
+	var _p0 = hmm;
+	if (_p0.ctor === 'Just') {
+		return {
+			ctor: '::',
+			_0: _p0._0,
+			_1: {ctor: '[]'}
+		};
+	} else {
+		return {ctor: '[]'};
+	}
+};
+var _user$project$Base_ops = _user$project$Base_ops || {};
+_user$project$Base_ops['!!'] = F2(
+	function (lst, idx) {
+		return _elm_lang$core$List$head(
+			A2(_elm_lang$core$List$drop, idx, lst));
+	});
+var _user$project$Base$Position = F2(
+	function (a, b) {
+		return {x: a, y: b};
+	});
+var _user$project$Base$GameState = function (a) {
+	return {players: a};
+};
+var _user$project$Base$Player = F3(
+	function (a, b, c) {
+		return {pos: a, name: b, id: c};
+	});
+var _user$project$Base$You = F2(
+	function (a, b) {
+		return {ip: a, youId: b};
+	});
+var _user$project$Base$TotalState = F2(
+	function (a, b) {
+		return {state: a, you: b};
+	});
+
+var _user$project$JsonEncode$encodeYou = function (you) {
+	return _elm_lang$core$Json_Encode$object(
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			{
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'ip',
+					_1: _elm_lang$core$Json_Encode$string(you.ip)
+				},
+				_1: {ctor: '[]'}
+			},
+			_user$project$Base$toList(
+				A2(
+					_elm_lang$core$Maybe$map,
+					function (x) {
+						return {
+							ctor: '_Tuple2',
+							_0: 'player',
+							_1: _elm_lang$core$Json_Encode$string(x)
+						};
+					},
+					you.youId))));
+};
+var _user$project$JsonEncode$encodePosition = function (pos) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'x',
+				_1: _elm_lang$core$Json_Encode$float(pos.x)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'y',
+					_1: _elm_lang$core$Json_Encode$float(pos.y)
+				},
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$JsonEncode$encodePlayer = function (player) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'pos',
+				_1: _user$project$JsonEncode$encodePosition(player.pos)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'name',
+					_1: _elm_lang$core$Json_Encode$string(player.name)
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'id',
+						_1: _elm_lang$core$Json_Encode$string(player.id)
+					},
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _user$project$JsonEncode$encodeGameState = function (state) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'players',
+				_1: _elm_lang$core$Json_Encode$list(
+					A2(_elm_lang$core$List$map, _user$project$JsonEncode$encodePlayer, state.players))
+			},
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$JsonEncode$encodeTotalState = function (tstate) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'gameState',
+				_1: _user$project$JsonEncode$encodeGameState(tstate.state)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'you',
+					_1: _user$project$JsonEncode$encodeYou(tstate.you)
+				},
+				_1: {ctor: '[]'}
+			}
+		});
+};
+
+var _user$project$Server$init = A2(
+	_elm_lang$core$Platform_Cmd_ops['!'],
+	{
+		clientIds: {ctor: '[]'},
+		gameState: _user$project$Base$GameState(
+			{
+				ctor: '::',
+				_0: A3(
+					_user$project$Base$Player,
+					A2(_user$project$Base$Position, 10, 10),
+					'Loovjo',
+					'123'),
+				_1: {ctor: '[]'}
+			})
+	},
+	{ctor: '[]'});
 var _user$project$Server$wsSend = _elm_lang$core$Native_Platform.outgoingPort(
 	'wsSend',
 	function (v) {
 		return [v._0, v._1];
 	});
+var _user$project$Server$wsReceive = _elm_lang$core$Native_Platform.incomingPort(
+	'wsReceive',
+	A2(
+		_elm_lang$core$Json_Decode$andThen,
+		function (x0) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				function (x1) {
+					return _elm_lang$core$Json_Decode$succeed(
+						{ctor: '_Tuple2', _0: x0, _1: x1});
+				},
+				A2(_elm_lang$core$Json_Decode$index, 1, _elm_lang$core$Json_Decode$string));
+		},
+		A2(_elm_lang$core$Json_Decode$index, 0, _elm_lang$core$Json_Decode$string)));
+var _user$project$Server$clientConnection = _elm_lang$core$Native_Platform.incomingPort(
+	'clientConnection',
+	A2(
+		_elm_lang$core$Json_Decode$andThen,
+		function (x0) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				function (x1) {
+					return _elm_lang$core$Json_Decode$succeed(
+						{ctor: '_Tuple2', _0: x0, _1: x1});
+				},
+				A2(_elm_lang$core$Json_Decode$index, 1, _elm_lang$core$Json_Decode$string));
+		},
+		A2(_elm_lang$core$Json_Decode$index, 0, _elm_lang$core$Json_Decode$string)));
+var _user$project$Server$Model = F2(
+	function (a, b) {
+		return {clientIds: a, gameState: b};
+	});
+var _user$project$Server$User = F2(
+	function (a, b) {
+		return {id: a, ip: b};
+	});
 var _user$project$Server$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
-		if (_p0.ctor === 'Broadcast') {
-			return A2(
-				_elm_lang$core$Platform_Cmd_ops['!'],
-				model,
-				A2(
-					_elm_lang$core$List$map,
-					function (id) {
-						return _user$project$Server$wsSend(
-							{ctor: '_Tuple2', _0: 'Hello!', _1: id});
-					},
-					model.clientIds));
-		} else {
-			return A2(
-				_elm_lang$core$Platform_Cmd_ops['!'],
-				_elm_lang$core$Native_Utils.update(
+		switch (_p0.ctor) {
+			case 'Broadcast':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
-					{
-						clientIds: A2(
-							_elm_lang$core$Debug$log,
-							'Clients',
-							A2(
+					A2(
+						_elm_lang$core$List$map,
+						function (user) {
+							var you = A2(
+								_user$project$Base$You,
+								user.id,
+								_elm_lang$core$Maybe$Just(user.ip));
+							var totalState = A2(_user$project$Base$TotalState, model.gameState, you);
+							return _user$project$Server$wsSend(
+								{
+									ctor: '_Tuple2',
+									_0: A2(
+										_elm_lang$core$Json_Encode$encode,
+										0,
+										_user$project$JsonEncode$encodeTotalState(totalState)),
+									_1: user.id
+								});
+						},
+						model.clientIds));
+			case 'Connection':
+				var _p1 = _p0._0._0;
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							clientIds: A2(
 								_elm_lang$core$Basics_ops['++'],
 								model.clientIds,
 								{
 									ctor: '::',
-									_0: _p0._0,
+									_0: A2(_user$project$Server$User, _p1, _p0._0._1),
 									_1: {ctor: '[]'}
-								}))
-					}),
-				{ctor: '[]'});
+								}),
+							gameState: function () {
+								var gameState = model.gameState;
+								return _elm_lang$core$Native_Utils.update(
+									gameState,
+									{
+										players: A2(
+											_elm_lang$core$Basics_ops['++'],
+											gameState.players,
+											{
+												ctor: '::',
+												_0: A3(
+													_user$project$Base$Player,
+													A2(_user$project$Base$Position, 0, 0),
+													_p1,
+													_p1),
+												_1: {ctor: '[]'}
+											})
+									});
+							}()
+						}),
+					{ctor: '[]'});
+			default:
+				return _elm_lang$core$Basics$always(
+					A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{ctor: '[]'}))(
+					A2(
+						_elm_lang$core$Debug$log,
+						'Msg, id:',
+						_elm_lang$core$Basics$toString(
+							{ctor: '_Tuple2', _0: _p0._0._0, _1: _p0._0._1})));
 		}
 	});
-var _user$project$Server$clientConnection = _elm_lang$core$Native_Platform.incomingPort('clientConnection', _elm_lang$core$Json_Decode$string);
-var _user$project$Server$Model = function (a) {
-	return {clientIds: a};
+var _user$project$Server$WsReceive = function (a) {
+	return {ctor: 'WsReceive', _0: a};
 };
-var _user$project$Server$init = A2(
-	_elm_lang$core$Platform_Cmd_ops['!'],
-	_user$project$Server$Model(
-		{ctor: '[]'}),
-	{ctor: '[]'});
 var _user$project$Server$Connection = function (a) {
 	return {ctor: 'Connection', _0: a};
 };
@@ -6231,8 +6466,12 @@ var _user$project$Server$subs = function (model) {
 			_0: A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second / 10, _user$project$Server$Broadcast),
 			_1: {
 				ctor: '::',
-				_0: _user$project$Server$clientConnection(_user$project$Server$Connection),
-				_1: {ctor: '[]'}
+				_0: _user$project$Server$wsReceive(_user$project$Server$WsReceive),
+				_1: {
+					ctor: '::',
+					_0: _user$project$Server$clientConnection(_user$project$Server$Connection),
+					_1: {ctor: '[]'}
+				}
 			}
 		});
 };

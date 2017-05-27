@@ -7,6 +7,8 @@ import Time exposing (inSeconds)
 import Keyboard
 import Json.Decode exposing (decodeString)
 
+import WebSocket as Ws
+
 import Base exposing (..)
 import ClientBase exposing (..)
 import JsonDecode exposing (..)
@@ -65,22 +67,26 @@ update msg model =
                 Just last ->
                     let delta = time - last
                         (sDx, sDy) =
-                            case (model.lastMousePos, model.size) of
-                                (Just mouse, Just size) ->
-                                    let cmp = 
-                                        \f ->
-                                            (*) (delta * model.scrollSpeed) <|
-                                            if (f <| toPixels model mouse) < model.sideScroll 
-                                               then -1 
-                                            else if (f <| toPixels model mouse) > f size - model.sideScroll 
-                                                then 1 
-                                            else 0
-                                    in (cmp .x, cmp .y)
+                            case (model.lastMousePos, model.scrollCenter) of
+                                (Just mouseUnit, Just center) ->
+                                    let mouse = Debug.log "Mouse" <| toPixels model mouseUnit
+                                        diff = Position (mouse.x - center.x) (mouse.y - center.y)
+                                        distDiv = dist diff |> max 20 |> min 200
+                                    in (diff.x * delta / distDiv * 40, diff.y * delta / distDiv * 40)
                                 _ -> (0, 0)
-                    in
-                        { model_
-                        | scroll = {x = model.scroll.x + sDx, y = model.scroll.y + sDy}
-                        } ! []
+                        modelScroll = 
+                            { model_
+                            | scroll = {x = model.scroll.x + sDx, y = model.scroll.y + sDy}
+                            }
+                        newMouse =
+                            case model.lastMousePos of
+                                Just mouse -> Just <| fromPixels modelScroll <| toPixels model mouse
+                                Nothing -> Nothing
+                    in { modelScroll | lastMousePos = newMouse } ! []
+
         ServerMsg msg ->
-            let _ = Debug.log "You've got mail!" msg
-            in model ! []
+            case decodeString decodeTotalState msg of
+                Ok tState ->
+                    { model | gameState = tState.state, you = Just tState.you } ! []
+                Err _ ->
+                    model ! []
