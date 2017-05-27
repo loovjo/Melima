@@ -26,7 +26,16 @@ if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
         """ % (__file__, __file__)))
     sys.exit()
 
-FILES_TO_COMPILE = ["Source/Main.elm"]
+compile_front = True
+compile_back = True
+
+FILES_TO_COMPILE = []
+
+if compile_front:
+    FILES_TO_COMPILE.append( (("..", "Web", "Out"), ("Front", ), ["Main.elm"],) )
+
+if compile_back:
+    FILES_TO_COMPILE.append( (("..", "Back"), ("Back",), ["Server.elm"]) )
 
 CHECK_HASH = "-a" in sys.argv[1:]
 HASH_PATH = ".hashes"
@@ -56,14 +65,19 @@ print("Starting compile...")
 compiled = 0
 start = time.time()
 
-for root, dirs, files in os.walk("Source"):
-    for source in files:
+for proj in FILES_TO_COMPILE:
+    for source in proj[2]:
         if source.endswith(".elm"):
-            full_path = os.path.join(root, source)
-            if not full_path in FILES_TO_COMPILE:
-                continue
+            full_path = os.path.join(*proj[1], "Source", source)
+
+            print("\n" + " " * 8 + "=" * 32)
             print()
+
             changed = True
+
+            if not os.path.isfile(full_path):
+                print(RED + "Couldn't find file %s! Aborting!" % full_path + RESET)
+                sys.exit()
 
             content = open(full_path, "r").read()
             file_hash = hashlib.sha256(content.encode("ascii")).hexdigest()
@@ -73,14 +87,15 @@ for root, dirs, files in os.walk("Source"):
                     changed = False
             hashes[full_path] = file_hash
 
-            output = os.path.join("..", "Web", "Out", source.replace(".elm", ".js"))
+            output = os.path.join(*proj[0], source.replace(".elm", ".js"))
+
             print(BLUE + "Compiling %s -> %s" % (full_path, output) + RESET)
 
             if not changed and CHECK_HASH:
                 print(BLUE + "File not changed since last compile, skipping this file. (Use -a/--all to compile anyway)" + RESET)
                 continue
 
-            proc = subprocess.Popen(["elm-make", full_path, "--output", output])
+            proc = subprocess.Popen(["elm-make", os.path.join("Source", source), "--output", os.path.join("..", output)], cwd=os.path.join(*proj[1]))
             if proc.wait() != 0:
                 print(RED + "Cancelling compile" + RESET)
                 sys.exit(1)

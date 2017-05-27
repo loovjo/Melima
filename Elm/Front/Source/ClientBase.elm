@@ -1,63 +1,63 @@
-module Base exposing (..)
+module ClientBase exposing (..)
 
 import Time exposing (Time)
+import Window exposing (Size)
+import Mouse
 
-(!!) : List a -> Int -> Maybe a
-(!!) lst idx = List.head <| List.drop idx lst
+import Base exposing (..)
 
-infixr 2 !!
 
--- A usefull command to avoid the ugly
--- [ a, b, c ] ++
---      case d of
---          Just elem -> [d]
---          Nothing -> []
--- construct that's quite common when dealing with Html things.
--- Instead you can write the above like this:
---
--- [ a, b, c ] ++ toList d
-
-(toList) : Maybe a -> List a
-(toList) hmm =
-    case hmm of
-        Just yay -> [yay]
-        Nothing -> []
+fps : Float
+fps = 60
 
 scale = 10
-
-type alias Position = {x : Float, y : Float}
-
-type alias GameState =
-    { players : List Player 
-    }
-
-type alias Player =
-    { pos : Position
-    , name : String
-    }
-
-type alias You =
-    { ip : String
-    , player : Maybe Player
-    }
 
 type alias Model =
     { gameState : GameState
     , you : Maybe You
     , lastTime : Maybe Float
 
+    , size : Maybe Position
+    , currentCombo : List String
+
+    , showDebug : Bool
     , err : Maybe String
     , webSocketUrl : String
+
+    , scroll : Position -- In units
+    , zoom : Float -- In pixel/unit
+
+    , sideScroll : Float
+    , scrollSpeed : Float
+
+    , lastMousePos : Maybe Position
+    , pressing : Bool
     }
 
-type Msg 
+fromPixels : Model -> Position -> Position
+fromPixels model pixel = {x = pixel.x / model.zoom - model.scroll.x, y = pixel.y / model.zoom - model.scroll.y}
+
+toPixels : Model -> Position -> Position
+toPixels model unit = {x = (unit.x + model.scroll.x) * model.zoom, y = (unit.y + model.scroll.y) * model.zoom}
+
+decodeMouse : Model -> Mouse.Position -> Position
+decodeMouse model pos = fromPixels model <| Position (toFloat pos.x) (toFloat pos.y)
+
+type Msg
     = KeyDown_ Int
     | KeyDown String
     | KeyUp_ Int
     | KeyUp String
     | KeyPress Int
+    | MouseDown Mouse.Position
+    | MouseUp Mouse.Position
+    | MouseMoved Mouse.Position
 
     | WsMsg String
+    | SizeChanged Size
+    | Tick Time
+
+    | ServerMsg String
 
 
 -- Stolen and modified from http://stackoverflow.com/a/23377822/1753929
