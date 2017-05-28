@@ -39,8 +39,8 @@ parse : String -> Maybe Req
 parse msg =
     let tokens = String.split " " msg
     in 
-        case (tokens !! 0, tokens !! 1) of
-            (Just a, Just b) -> parseTokens (a, b)
+        case (List.head tokens, List.tail tokens) of
+            (Just a, Just b) -> parseTokens (a, String.join " " b)
             _ -> Nothing
 
 parseTokens : (String, String) -> Maybe Req

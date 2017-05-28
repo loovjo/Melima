@@ -6500,12 +6500,16 @@ var _user$project$MsgHandler$parse = function (msg) {
 	var tokens = A2(_elm_lang$core$String$split, ' ', msg);
 	var _p7 = {
 		ctor: '_Tuple2',
-		_0: A2(_user$project$Base_ops['!!'], tokens, 0),
-		_1: A2(_user$project$Base_ops['!!'], tokens, 1)
+		_0: _elm_lang$core$List$head(tokens),
+		_1: _elm_lang$core$List$tail(tokens)
 	};
 	if (((_p7.ctor === '_Tuple2') && (_p7._0.ctor === 'Just')) && (_p7._1.ctor === 'Just')) {
 		return _user$project$MsgHandler$parseTokens(
-			{ctor: '_Tuple2', _0: _p7._0._0, _1: _p7._1._0});
+			{
+				ctor: '_Tuple2',
+				_0: _p7._0._0,
+				_1: A2(_elm_lang$core$String$join, ' ', _p7._1._0)
+			});
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}

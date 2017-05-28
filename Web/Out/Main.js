@@ -11250,12 +11250,16 @@ var _loovjo$traffic$MsgHandler$parse = function (msg) {
 	var tokens = A2(_elm_lang$core$String$split, ' ', msg);
 	var _p7 = {
 		ctor: '_Tuple2',
-		_0: A2(_loovjo$traffic$Base_ops['!!'], tokens, 0),
-		_1: A2(_loovjo$traffic$Base_ops['!!'], tokens, 1)
+		_0: _elm_lang$core$List$head(tokens),
+		_1: _elm_lang$core$List$tail(tokens)
 	};
 	if (((_p7.ctor === '_Tuple2') && (_p7._0.ctor === 'Just')) && (_p7._1.ctor === 'Just')) {
 		return _loovjo$traffic$MsgHandler$parseTokens(
-			{ctor: '_Tuple2', _0: _p7._0._0, _1: _p7._1._0});
+			{
+				ctor: '_Tuple2',
+				_0: _p7._0._0,
+				_1: A2(_elm_lang$core$String$join, ' ', _p7._1._0)
+			});
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}
@@ -11765,12 +11769,12 @@ var _loovjo$traffic$Render_Render$renderPlayer = F2(
 										if (_p0.ctor === 'Just') {
 											return _elm_lang$core$Native_Utils.eq(_p0._0.id, player.id) ? 'blue' : 'red';
 										} else {
-											return 'red';
+											return '#1d54ad';
 										}
 									}()),
 								_1: {
 									ctor: '::',
-									_0: _elm_lang$svg$Svg_Attributes$stroke('black'),
+									_0: _elm_lang$svg$Svg_Attributes$stroke('#000000'),
 									_1: {
 										ctor: '::',
 										_0: _elm_lang$svg$Svg_Attributes$strokeWidth('3'),
@@ -11828,7 +11832,7 @@ var _loovjo$traffic$Render_Render$renderPlayer = F2(
 											_0: _elm_lang$svg$Svg_Attributes$strokeWidth('3'),
 											_1: {
 												ctor: '::',
-												_0: _elm_lang$svg$Svg_Attributes$stroke('black'),
+												_0: _elm_lang$svg$Svg_Attributes$stroke('#000000'),
 												_1: {ctor: '[]'}
 											}
 										}
@@ -11952,7 +11956,7 @@ var _loovjo$traffic$Render_Render$view = function (model) {
 													_0: _elm_lang$svg$Svg_Attributes$r('20'),
 													_1: {
 														ctor: '::',
-														_0: _elm_lang$svg$Svg_Attributes$fill('red'),
+														_0: _elm_lang$svg$Svg_Attributes$fill('#7aad1c'),
 														_1: {
 															ctor: '::',
 															_0: _elm_lang$svg$Svg_Events$onClick(_loovjo$traffic$ClientBase$MakePlayerPrompt),

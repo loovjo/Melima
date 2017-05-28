@@ -30,7 +30,7 @@ view model =
                                     [ Sa.cx <| toString <| size.x - 50
                                     , Sa.cy <| toString <| size.y - 50
                                     , Sa.r "20"
-                                    , Sa.fill "red"
+                                    , Sa.fill "#7aad1c"
                                     , Se.onClick MakePlayerPrompt
                                     ] []
                                 ]
@@ -45,8 +45,8 @@ renderPlayer model player =
         , Sa.r <| toString model.zoom
         , Sa.fill <| case model.you of
             Just you -> if you.id == player.id then "blue" else "red"
-            Nothing -> "red"
-        , Sa.stroke "black"
+            Nothing -> "#1d54ad"
+        , Sa.stroke "#000000"
         , Sa.strokeWidth "3"
         ] []
     , S.line
@@ -58,7 +58,7 @@ renderPlayer model player =
                 , Sa.x2 <| toString <| dx + (.x <| toPixels model player.pos)
                 , Sa.y2 <| toString <| dy + (.y <| toPixels model player.pos)
                 , Sa.strokeWidth "3"
-                , Sa.stroke "black"
+                , Sa.stroke "#000000"
                 ]
         ) []
     , S.text_
