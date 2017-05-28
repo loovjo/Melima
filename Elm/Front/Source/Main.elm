@@ -19,7 +19,6 @@ import Render.Render exposing (view)
 
 import WebSocket as Ws
 
-
 main =
     Html.programWithFlags { init = init, view = view, update = update, subscriptions = subscriptions }
 
@@ -70,4 +69,5 @@ subscriptions model =
     , ups MouseUp
     , moves MouseMoved
     , Ws.listen model.webSocketUrl ServerMsg
+    , promptResult MakePlayer
     ]

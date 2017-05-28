@@ -1,4 +1,4 @@
-module ClientBase exposing (..)
+port module ClientBase exposing (..)
 
 import Time exposing (Time)
 import Window exposing (Size)
@@ -9,6 +9,10 @@ import WebSocket as Ws
 
 import Task
 
+import Json.Decode -- For ports to work
+
+port prompt : String -> Cmd msg
+port promptResult : (String -> msg) -> Sub msg
 
 fps : Float
 fps = 60
@@ -57,6 +61,9 @@ type Msg
     | MouseDown Mouse.Position
     | MouseUp Mouse.Position
     | MouseMoved Mouse.Position
+
+    | MakePlayerPrompt
+    | MakePlayer String -- Name
 
     | WsMsg String
     | SizeChanged Size

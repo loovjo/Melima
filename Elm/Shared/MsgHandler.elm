@@ -4,22 +4,35 @@ import Base exposing (..)
 
 handleMsg : (String, String) -> GameState -> GameState
 handleMsg (userId, msg) state =
-    let updateFn =
-            let pmsg = parse msg
-            in case pmsg of
-                Nothing -> identity
-                Just req ->
-                    case req of
-                        Rotate theta -> (\x -> {x | turning = theta})
-                        Walk r -> (\x -> {x | vel = r})
-    in
-        { state
-        | players = List.map (\player -> if player.id == userId then updateFn player else player) state.players
-        }
+    let pmsg = parse msg
+    in case pmsg of
+        Nothing -> state
+        Just req ->
+            case req of
+                Make name ->
+                    { state | players = 
+                        { pos = Position 0 0
+                        , rotation = 0
+                        , turning = 0
+                        , vel = 0
+                        , name = name
+                        , id = userId
+                        } :: state.players}
+                _ ->
+                    let updateFn =
+                        case req of
+                            Rotate theta -> (\x -> {x | turning = theta})
+                            Walk r -> (\x -> {x | vel = r})
+                            _ -> identity
+                    in
+                        { state
+                        | players = List.map (\player -> if player.id == userId then updateFn player else player) state.players
+                        }
 
 
 type Req
-    = Rotate Float
+    = Make String
+    | Rotate Float
     | Walk Float
 
 parse : String -> Maybe Req
@@ -36,7 +49,8 @@ parseTokens (t1, t2) =
 
 reqs : List (String, (String -> Maybe Req))
 reqs =
-    [ ("rot", (Maybe.map Rotate) << Result.toMaybe << String.toFloat)
+    [ ("make", (Maybe.map Make) << Result.toMaybe << Ok)
+    , ("rot", (Maybe.map Rotate) << Result.toMaybe << String.toFloat)
     , ("walk", (Maybe.map Walk) << Result.toMaybe << String.toFloat)
     ]
 

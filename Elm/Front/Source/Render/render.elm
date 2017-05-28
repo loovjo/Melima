@@ -3,6 +3,7 @@ module Render.Render exposing (view)
 import Html exposing (..)
 import Svg as S
 import Svg.Attributes as Sa
+import Svg.Events as Se
 
 import Base exposing (..)
 import ClientBase exposing (..)
@@ -20,6 +21,21 @@ view model =
                 , Sa.style "background: #337733"
                 ] <|
                 List.concatMap (renderPlayer model) model.gameState.players
+                ++
+                case model.you of
+                    Just you ->
+                        if (List.length <| List.filter ((==) you.id << .id) model.gameState.players) == 0
+                            then
+                                [ S.circle
+                                    [ Sa.cx <| toString <| size.x - 50
+                                    , Sa.cy <| toString <| size.y - 50
+                                    , Sa.r "20"
+                                    , Sa.fill "red"
+                                    , Se.onClick MakePlayerPrompt
+                                    ] []
+                                ]
+                            else []
+                    Nothing -> []
             ]
 renderPlayer : Model -> Player -> List (S.Svg Msg)
 renderPlayer model player =
@@ -27,7 +43,9 @@ renderPlayer model player =
         [ Sa.cx <| toString <| .x <| toPixels model player.pos
         , Sa.cy <| toString <| .y <| toPixels model player.pos
         , Sa.r <| toString model.zoom
-        , Sa.fill "red"
+        , Sa.fill <| case model.you of
+            Just you -> if you.id == player.id then "blue" else "red"
+            Nothing -> "red"
         , Sa.stroke "black"
         , Sa.strokeWidth "3"
         ] []

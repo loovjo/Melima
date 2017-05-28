@@ -109,6 +109,13 @@ update msg model =
                 Err _ ->
                     model ! []
 
+        MakePlayerPrompt ->
+            model ! [prompt "Player name:"]
+
+        MakePlayer name ->
+            model !
+            [wsSend <| "make " ++ name]
+
         SendMsg msg -> 
             { model
             | gameState =

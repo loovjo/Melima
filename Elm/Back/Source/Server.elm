@@ -15,7 +15,7 @@ main = Platform.program {init = init, update = update, subscriptions = subs}
 init : ( Model, Cmd msg )
 init =
     { clientIds = []
-    , gameState = GameState [Player (Position 5 5) 0 0 0 "a" "a"]
+    , gameState = GameState []
     , lastTime = Nothing
     } ! []
 
@@ -43,11 +43,6 @@ update msg model =
         Connection (id, ip) ->
             { model 
             | clientIds = model.clientIds ++ [User id ip] 
-            , gameState =
-                let gameState = model.gameState 
-                in  { gameState 
-                    | players = gameState.players ++ [Player (Position 0 0) 0 0 0 id id]
-                    }
             } ! []
 
         Step ts ->
@@ -60,7 +55,9 @@ update msg model =
                     in { modelWithTime | gameState = gameStep delta model.gameState } ! []
 
         WsReceive (msg, id) ->
-            (always <| { model | gameState = handleMsg (id, msg) model.gameState } ! []) <| Debug.log "Msg, id:" <| toString (msg, id)
+            (always <| 
+                { model | gameState = handleMsg (id, msg) model.gameState } ! []
+            ) <| Debug.log "Msg, id:" <| toString (msg, id)
 
 subs : Model -> Sub Msg
 subs model = 

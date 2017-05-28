@@ -33,6 +33,12 @@ Object.keys(defaultControls).forEach(control => {
 
 var app = Elm.Main.embed(node, {webSocketUrl: "ws://" + document.location.hostname + ":" + document.location.port + "/cars"})
 
+console.log(app.ports)
+app.ports.prompt.subscribe(function(text) {
+    res = prompt(text)
+    app.ports.promptResult.send(res)
+})
+
         </script>
     </body>
 </html>

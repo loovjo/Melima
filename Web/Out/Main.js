@@ -9170,6 +9170,34 @@ var _elm_lang$svg$Svg_Attributes$accumulate = _elm_lang$virtual_dom$VirtualDom$a
 var _elm_lang$svg$Svg_Attributes$accelerate = _elm_lang$virtual_dom$VirtualDom$attribute('accelerate');
 var _elm_lang$svg$Svg_Attributes$accentHeight = _elm_lang$virtual_dom$VirtualDom$attribute('accent-height');
 
+var _elm_lang$svg$Svg_Events$on = _elm_lang$virtual_dom$VirtualDom$on;
+var _elm_lang$svg$Svg_Events$simpleOn = F2(
+	function (name, msg) {
+		return A2(
+			_elm_lang$svg$Svg_Events$on,
+			name,
+			_elm_lang$core$Json_Decode$succeed(msg));
+	});
+var _elm_lang$svg$Svg_Events$onBegin = _elm_lang$svg$Svg_Events$simpleOn('begin');
+var _elm_lang$svg$Svg_Events$onEnd = _elm_lang$svg$Svg_Events$simpleOn('end');
+var _elm_lang$svg$Svg_Events$onRepeat = _elm_lang$svg$Svg_Events$simpleOn('repeat');
+var _elm_lang$svg$Svg_Events$onAbort = _elm_lang$svg$Svg_Events$simpleOn('abort');
+var _elm_lang$svg$Svg_Events$onError = _elm_lang$svg$Svg_Events$simpleOn('error');
+var _elm_lang$svg$Svg_Events$onResize = _elm_lang$svg$Svg_Events$simpleOn('resize');
+var _elm_lang$svg$Svg_Events$onScroll = _elm_lang$svg$Svg_Events$simpleOn('scroll');
+var _elm_lang$svg$Svg_Events$onLoad = _elm_lang$svg$Svg_Events$simpleOn('load');
+var _elm_lang$svg$Svg_Events$onUnload = _elm_lang$svg$Svg_Events$simpleOn('unload');
+var _elm_lang$svg$Svg_Events$onZoom = _elm_lang$svg$Svg_Events$simpleOn('zoom');
+var _elm_lang$svg$Svg_Events$onActivate = _elm_lang$svg$Svg_Events$simpleOn('activate');
+var _elm_lang$svg$Svg_Events$onClick = _elm_lang$svg$Svg_Events$simpleOn('click');
+var _elm_lang$svg$Svg_Events$onFocusIn = _elm_lang$svg$Svg_Events$simpleOn('focusin');
+var _elm_lang$svg$Svg_Events$onFocusOut = _elm_lang$svg$Svg_Events$simpleOn('focusout');
+var _elm_lang$svg$Svg_Events$onMouseDown = _elm_lang$svg$Svg_Events$simpleOn('mousedown');
+var _elm_lang$svg$Svg_Events$onMouseMove = _elm_lang$svg$Svg_Events$simpleOn('mousemove');
+var _elm_lang$svg$Svg_Events$onMouseOut = _elm_lang$svg$Svg_Events$simpleOn('mouseout');
+var _elm_lang$svg$Svg_Events$onMouseOver = _elm_lang$svg$Svg_Events$simpleOn('mouseover');
+var _elm_lang$svg$Svg_Events$onMouseUp = _elm_lang$svg$Svg_Events$simpleOn('mouseup');
+
 var _elm_lang$websocket$Native_WebSocket = function() {
 
 function open(url, settings)
@@ -10913,6 +10941,12 @@ var _loovjo$traffic$ClientBase$decodeMouse = F2(
 	});
 var _loovjo$traffic$ClientBase$scale = 10;
 var _loovjo$traffic$ClientBase$fps = 60;
+var _loovjo$traffic$ClientBase$prompt = _elm_lang$core$Native_Platform.outgoingPort(
+	'prompt',
+	function (v) {
+		return v;
+	});
+var _loovjo$traffic$ClientBase$promptResult = _elm_lang$core$Native_Platform.incomingPort('promptResult', _elm_lang$core$Json_Decode$string);
 var _loovjo$traffic$ClientBase$Model = function (a) {
 	return function (b) {
 		return function (c) {
@@ -10965,6 +10999,10 @@ var _loovjo$traffic$ClientBase$SizeChanged = function (a) {
 var _loovjo$traffic$ClientBase$WsMsg = function (a) {
 	return {ctor: 'WsMsg', _0: a};
 };
+var _loovjo$traffic$ClientBase$MakePlayer = function (a) {
+	return {ctor: 'MakePlayer', _0: a};
+};
+var _loovjo$traffic$ClientBase$MakePlayerPrompt = {ctor: 'MakePlayerPrompt'};
 var _loovjo$traffic$ClientBase$MouseMoved = function (a) {
 	return {ctor: 'MouseMoved', _0: a};
 };
@@ -11151,95 +11189,137 @@ var _loovjo$traffic$MsgHandler$Walk = function (a) {
 var _loovjo$traffic$MsgHandler$Rotate = function (a) {
 	return {ctor: 'Rotate', _0: a};
 };
+var _loovjo$traffic$MsgHandler$Make = function (a) {
+	return {ctor: 'Make', _0: a};
+};
 var _loovjo$traffic$MsgHandler$reqs = {
 	ctor: '::',
 	_0: {
 		ctor: '_Tuple2',
-		_0: 'rot',
+		_0: 'make',
 		_1: function (_p0) {
 			return A2(
 				_elm_lang$core$Maybe$map,
-				_loovjo$traffic$MsgHandler$Rotate,
+				_loovjo$traffic$MsgHandler$Make,
 				_elm_lang$core$Result$toMaybe(
-					_elm_lang$core$String$toFloat(_p0)));
+					_elm_lang$core$Result$Ok(_p0)));
 		}
 	},
 	_1: {
 		ctor: '::',
 		_0: {
 			ctor: '_Tuple2',
-			_0: 'walk',
+			_0: 'rot',
 			_1: function (_p1) {
 				return A2(
 					_elm_lang$core$Maybe$map,
-					_loovjo$traffic$MsgHandler$Walk,
+					_loovjo$traffic$MsgHandler$Rotate,
 					_elm_lang$core$Result$toMaybe(
 						_elm_lang$core$String$toFloat(_p1)));
 			}
 		},
-		_1: {ctor: '[]'}
+		_1: {
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'walk',
+				_1: function (_p2) {
+					return A2(
+						_elm_lang$core$Maybe$map,
+						_loovjo$traffic$MsgHandler$Walk,
+						_elm_lang$core$Result$toMaybe(
+							_elm_lang$core$String$toFloat(_p2)));
+				}
+			},
+			_1: {ctor: '[]'}
+		}
 	}
 };
-var _loovjo$traffic$MsgHandler$parseTokens = function (_p2) {
-	var _p3 = _p2;
+var _loovjo$traffic$MsgHandler$parseTokens = function (_p3) {
+	var _p4 = _p3;
 	return _elm_lang$core$List$head(
 		A2(
 			_elm_lang$core$List$filterMap,
-			function (_p4) {
-				var _p5 = _p4;
-				return _elm_lang$core$Native_Utils.eq(_p3._0, _p5._0) ? _p5._1(_p3._1) : _elm_lang$core$Maybe$Nothing;
+			function (_p5) {
+				var _p6 = _p5;
+				return _elm_lang$core$Native_Utils.eq(_p4._0, _p6._0) ? _p6._1(_p4._1) : _elm_lang$core$Maybe$Nothing;
 			},
 			_loovjo$traffic$MsgHandler$reqs));
 };
 var _loovjo$traffic$MsgHandler$parse = function (msg) {
 	var tokens = A2(_elm_lang$core$String$split, ' ', msg);
-	var _p6 = {
+	var _p7 = {
 		ctor: '_Tuple2',
 		_0: A2(_loovjo$traffic$Base_ops['!!'], tokens, 0),
 		_1: A2(_loovjo$traffic$Base_ops['!!'], tokens, 1)
 	};
-	if (((_p6.ctor === '_Tuple2') && (_p6._0.ctor === 'Just')) && (_p6._1.ctor === 'Just')) {
+	if (((_p7.ctor === '_Tuple2') && (_p7._0.ctor === 'Just')) && (_p7._1.ctor === 'Just')) {
 		return _loovjo$traffic$MsgHandler$parseTokens(
-			{ctor: '_Tuple2', _0: _p6._0._0, _1: _p6._1._0});
+			{ctor: '_Tuple2', _0: _p7._0._0, _1: _p7._1._0});
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}
 };
 var _loovjo$traffic$MsgHandler$handleMsg = F2(
-	function (_p7, state) {
-		var _p8 = _p7;
-		var updateFn = function () {
-			var pmsg = _loovjo$traffic$MsgHandler$parse(_p8._1);
-			var _p9 = pmsg;
-			if (_p9.ctor === 'Nothing') {
-				return _elm_lang$core$Basics$identity;
+	function (_p8, state) {
+		var _p9 = _p8;
+		var _p14 = _p9._0;
+		var pmsg = _loovjo$traffic$MsgHandler$parse(_p9._1);
+		var _p10 = pmsg;
+		if (_p10.ctor === 'Nothing') {
+			return state;
+		} else {
+			var _p13 = _p10._0;
+			var _p11 = _p13;
+			if (_p11.ctor === 'Make') {
+				return _elm_lang$core$Native_Utils.update(
+					state,
+					{
+						players: {
+							ctor: '::',
+							_0: {
+								pos: A2(_loovjo$traffic$Base$Position, 0, 0),
+								rotation: 0,
+								turning: 0,
+								vel: 0,
+								name: _p11._0,
+								id: _p14
+							},
+							_1: state.players
+						}
+					});
 			} else {
-				var _p10 = _p9._0;
-				if (_p10.ctor === 'Rotate') {
-					return function (x) {
-						return _elm_lang$core$Native_Utils.update(
-							x,
-							{turning: _p10._0});
-					};
-				} else {
-					return function (x) {
-						return _elm_lang$core$Native_Utils.update(
-							x,
-							{vel: _p10._0});
-					};
-				}
+				var updateFn = function () {
+					var _p12 = _p13;
+					switch (_p12.ctor) {
+						case 'Rotate':
+							return function (x) {
+								return _elm_lang$core$Native_Utils.update(
+									x,
+									{turning: _p12._0});
+							};
+						case 'Walk':
+							return function (x) {
+								return _elm_lang$core$Native_Utils.update(
+									x,
+									{vel: _p12._0});
+							};
+						default:
+							return _elm_lang$core$Basics$identity;
+					}
+				}();
+				return _elm_lang$core$Native_Utils.update(
+					state,
+					{
+						players: A2(
+							_elm_lang$core$List$map,
+							function (player) {
+								return _elm_lang$core$Native_Utils.eq(player.id, _p14) ? updateFn(player) : player;
+							},
+							state.players)
+					});
 			}
-		}();
-		return _elm_lang$core$Native_Utils.update(
-			state,
-			{
-				players: A2(
-					_elm_lang$core$List$map,
-					function (player) {
-						return _elm_lang$core$Native_Utils.eq(player.id, _p8._0) ? updateFn(player) : player;
-					},
-					state.players)
-			});
+		}
 	});
 
 var _loovjo$traffic$Update_Keyboard$keyPress = F2(
@@ -11604,6 +11684,25 @@ var _loovjo$traffic$Update_Update$update = F2(
 							model,
 							{ctor: '[]'});
 					}
+				case 'MakePlayerPrompt':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _loovjo$traffic$ClientBase$prompt('Player name:'),
+							_1: {ctor: '[]'}
+						});
+				case 'MakePlayer':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _loovjo$traffic$ClientBase$wsSend(
+								A2(_elm_lang$core$Basics_ops['++'], 'make ', _p0._0)),
+							_1: {ctor: '[]'}
+						});
 				default:
 					var _p20 = _p0._0;
 					return A2(
@@ -11660,7 +11759,15 @@ var _loovjo$traffic$Render_Render$renderPlayer = F2(
 								_elm_lang$core$Basics$toString(model.zoom)),
 							_1: {
 								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$fill('red'),
+								_0: _elm_lang$svg$Svg_Attributes$fill(
+									function () {
+										var _p0 = model.you;
+										if (_p0.ctor === 'Just') {
+											return _elm_lang$core$Native_Utils.eq(_p0._0.id, player.id) ? 'blue' : 'red';
+										} else {
+											return 'red';
+										}
+									}()),
 								_1: {
 									ctor: '::',
 									_0: _elm_lang$svg$Svg_Attributes$stroke('black'),
@@ -11680,10 +11787,10 @@ var _loovjo$traffic$Render_Render$renderPlayer = F2(
 				_0: A2(
 					_elm_lang$svg$Svg$line,
 					function () {
-						var _p0 = _elm_lang$core$Basics$fromPolar(
+						var _p1 = _elm_lang$core$Basics$fromPolar(
 							{ctor: '_Tuple2', _0: model.zoom, _1: player.rotation});
-						var dx = _p0._0;
-						var dy = _p0._1;
+						var dx = _p1._0;
+						var dy = _p1._1;
 						return {
 							ctor: '::',
 							_0: _elm_lang$svg$Svg_Attributes$x1(
@@ -11773,14 +11880,14 @@ var _loovjo$traffic$Render_Render$renderPlayer = F2(
 		};
 	});
 var _loovjo$traffic$Render_Render$view = function (model) {
-	var _p1 = model.size;
-	if (_p1.ctor === 'Nothing') {
+	var _p2 = model.size;
+	if (_p2.ctor === 'Nothing') {
 		return A2(
 			_elm_lang$html$Html$div,
 			{ctor: '[]'},
 			{ctor: '[]'});
 	} else {
-		var _p2 = _p1._0;
+		var _p5 = _p2._0;
 		return A2(
 			_elm_lang$html$Html$div,
 			{ctor: '[]'},
@@ -11791,11 +11898,11 @@ var _loovjo$traffic$Render_Render$view = function (model) {
 					{
 						ctor: '::',
 						_0: _elm_lang$svg$Svg_Attributes$width(
-							_elm_lang$core$Basics$toString(_p2.x)),
+							_elm_lang$core$Basics$toString(_p5.x)),
 						_1: {
 							ctor: '::',
 							_0: _elm_lang$svg$Svg_Attributes$height(
-								_elm_lang$core$Basics$toString(_p2.y)),
+								_elm_lang$core$Basics$toString(_p5.y)),
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$svg$Svg_Attributes$style('background: #337733'),
@@ -11804,9 +11911,64 @@ var _loovjo$traffic$Render_Render$view = function (model) {
 						}
 					},
 					A2(
-						_elm_lang$core$List$concatMap,
-						_loovjo$traffic$Render_Render$renderPlayer(model),
-						model.gameState.players)),
+						_elm_lang$core$Basics_ops['++'],
+						A2(
+							_elm_lang$core$List$concatMap,
+							_loovjo$traffic$Render_Render$renderPlayer(model),
+							model.gameState.players),
+						function () {
+							var _p3 = model.you;
+							if (_p3.ctor === 'Just') {
+								return _elm_lang$core$Native_Utils.eq(
+									_elm_lang$core$List$length(
+										A2(
+											_elm_lang$core$List$filter,
+											function (_p4) {
+												return A2(
+													F2(
+														function (x, y) {
+															return _elm_lang$core$Native_Utils.eq(x, y);
+														}),
+													_p3._0.id,
+													function (_) {
+														return _.id;
+													}(_p4));
+											},
+											model.gameState.players)),
+									0) ? {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$svg$Svg$circle,
+										{
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$cx(
+												_elm_lang$core$Basics$toString(_p5.x - 50)),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$cy(
+													_elm_lang$core$Basics$toString(_p5.y - 50)),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$r('20'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$fill('red'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Events$onClick(_loovjo$traffic$ClientBase$MakePlayerPrompt),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										},
+										{ctor: '[]'}),
+									_1: {ctor: '[]'}
+								} : {ctor: '[]'};
+							} else {
+								return {ctor: '[]'};
+							}
+						}())),
 				_1: {ctor: '[]'}
 			});
 	}
@@ -11844,7 +12006,11 @@ var _loovjo$traffic$Main$subscriptions = function (model) {
 											_1: {
 												ctor: '::',
 												_0: A2(_elm_lang$websocket$WebSocket$listen, model.webSocketUrl, _loovjo$traffic$ClientBase$ServerMsg),
-												_1: {ctor: '[]'}
+												_1: {
+													ctor: '::',
+													_0: _loovjo$traffic$ClientBase$promptResult(_loovjo$traffic$ClientBase$MakePlayer),
+													_1: {ctor: '[]'}
+												}
 											}
 										}
 									}

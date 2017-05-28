@@ -6439,95 +6439,137 @@ var _user$project$MsgHandler$Walk = function (a) {
 var _user$project$MsgHandler$Rotate = function (a) {
 	return {ctor: 'Rotate', _0: a};
 };
+var _user$project$MsgHandler$Make = function (a) {
+	return {ctor: 'Make', _0: a};
+};
 var _user$project$MsgHandler$reqs = {
 	ctor: '::',
 	_0: {
 		ctor: '_Tuple2',
-		_0: 'rot',
+		_0: 'make',
 		_1: function (_p0) {
 			return A2(
 				_elm_lang$core$Maybe$map,
-				_user$project$MsgHandler$Rotate,
+				_user$project$MsgHandler$Make,
 				_elm_lang$core$Result$toMaybe(
-					_elm_lang$core$String$toFloat(_p0)));
+					_elm_lang$core$Result$Ok(_p0)));
 		}
 	},
 	_1: {
 		ctor: '::',
 		_0: {
 			ctor: '_Tuple2',
-			_0: 'walk',
+			_0: 'rot',
 			_1: function (_p1) {
 				return A2(
 					_elm_lang$core$Maybe$map,
-					_user$project$MsgHandler$Walk,
+					_user$project$MsgHandler$Rotate,
 					_elm_lang$core$Result$toMaybe(
 						_elm_lang$core$String$toFloat(_p1)));
 			}
 		},
-		_1: {ctor: '[]'}
+		_1: {
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'walk',
+				_1: function (_p2) {
+					return A2(
+						_elm_lang$core$Maybe$map,
+						_user$project$MsgHandler$Walk,
+						_elm_lang$core$Result$toMaybe(
+							_elm_lang$core$String$toFloat(_p2)));
+				}
+			},
+			_1: {ctor: '[]'}
+		}
 	}
 };
-var _user$project$MsgHandler$parseTokens = function (_p2) {
-	var _p3 = _p2;
+var _user$project$MsgHandler$parseTokens = function (_p3) {
+	var _p4 = _p3;
 	return _elm_lang$core$List$head(
 		A2(
 			_elm_lang$core$List$filterMap,
-			function (_p4) {
-				var _p5 = _p4;
-				return _elm_lang$core$Native_Utils.eq(_p3._0, _p5._0) ? _p5._1(_p3._1) : _elm_lang$core$Maybe$Nothing;
+			function (_p5) {
+				var _p6 = _p5;
+				return _elm_lang$core$Native_Utils.eq(_p4._0, _p6._0) ? _p6._1(_p4._1) : _elm_lang$core$Maybe$Nothing;
 			},
 			_user$project$MsgHandler$reqs));
 };
 var _user$project$MsgHandler$parse = function (msg) {
 	var tokens = A2(_elm_lang$core$String$split, ' ', msg);
-	var _p6 = {
+	var _p7 = {
 		ctor: '_Tuple2',
 		_0: A2(_user$project$Base_ops['!!'], tokens, 0),
 		_1: A2(_user$project$Base_ops['!!'], tokens, 1)
 	};
-	if (((_p6.ctor === '_Tuple2') && (_p6._0.ctor === 'Just')) && (_p6._1.ctor === 'Just')) {
+	if (((_p7.ctor === '_Tuple2') && (_p7._0.ctor === 'Just')) && (_p7._1.ctor === 'Just')) {
 		return _user$project$MsgHandler$parseTokens(
-			{ctor: '_Tuple2', _0: _p6._0._0, _1: _p6._1._0});
+			{ctor: '_Tuple2', _0: _p7._0._0, _1: _p7._1._0});
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}
 };
 var _user$project$MsgHandler$handleMsg = F2(
-	function (_p7, state) {
-		var _p8 = _p7;
-		var updateFn = function () {
-			var pmsg = _user$project$MsgHandler$parse(_p8._1);
-			var _p9 = pmsg;
-			if (_p9.ctor === 'Nothing') {
-				return _elm_lang$core$Basics$identity;
+	function (_p8, state) {
+		var _p9 = _p8;
+		var _p14 = _p9._0;
+		var pmsg = _user$project$MsgHandler$parse(_p9._1);
+		var _p10 = pmsg;
+		if (_p10.ctor === 'Nothing') {
+			return state;
+		} else {
+			var _p13 = _p10._0;
+			var _p11 = _p13;
+			if (_p11.ctor === 'Make') {
+				return _elm_lang$core$Native_Utils.update(
+					state,
+					{
+						players: {
+							ctor: '::',
+							_0: {
+								pos: A2(_user$project$Base$Position, 0, 0),
+								rotation: 0,
+								turning: 0,
+								vel: 0,
+								name: _p11._0,
+								id: _p14
+							},
+							_1: state.players
+						}
+					});
 			} else {
-				var _p10 = _p9._0;
-				if (_p10.ctor === 'Rotate') {
-					return function (x) {
-						return _elm_lang$core$Native_Utils.update(
-							x,
-							{turning: _p10._0});
-					};
-				} else {
-					return function (x) {
-						return _elm_lang$core$Native_Utils.update(
-							x,
-							{vel: _p10._0});
-					};
-				}
+				var updateFn = function () {
+					var _p12 = _p13;
+					switch (_p12.ctor) {
+						case 'Rotate':
+							return function (x) {
+								return _elm_lang$core$Native_Utils.update(
+									x,
+									{turning: _p12._0});
+							};
+						case 'Walk':
+							return function (x) {
+								return _elm_lang$core$Native_Utils.update(
+									x,
+									{vel: _p12._0});
+							};
+						default:
+							return _elm_lang$core$Basics$identity;
+					}
+				}();
+				return _elm_lang$core$Native_Utils.update(
+					state,
+					{
+						players: A2(
+							_elm_lang$core$List$map,
+							function (player) {
+								return _elm_lang$core$Native_Utils.eq(player.id, _p14) ? updateFn(player) : player;
+							},
+							state.players)
+					});
 			}
-		}();
-		return _elm_lang$core$Native_Utils.update(
-			state,
-			{
-				players: A2(
-					_elm_lang$core$List$map,
-					function (player) {
-						return _elm_lang$core$Native_Utils.eq(player.id, _p8._0) ? updateFn(player) : player;
-					},
-					state.players)
-			});
+		}
 	});
 
 var _user$project$ServerBase$Model = F3(
@@ -6544,18 +6586,7 @@ var _user$project$Server$init = A2(
 	{
 		clientIds: {ctor: '[]'},
 		gameState: _user$project$Base$GameState(
-			{
-				ctor: '::',
-				_0: A6(
-					_user$project$Base$Player,
-					A2(_user$project$Base$Position, 5, 5),
-					0,
-					0,
-					0,
-					'a',
-					'a'),
-				_1: {ctor: '[]'}
-			}),
+			{ctor: '[]'}),
 		lastTime: _elm_lang$core$Maybe$Nothing
 	},
 	{ctor: '[]'});
@@ -6589,7 +6620,6 @@ var _user$project$Server$update = F2(
 						},
 						model.clientIds));
 			case 'Connection':
-				var _p1 = _p0._0._0;
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
@@ -6600,31 +6630,9 @@ var _user$project$Server$update = F2(
 								model.clientIds,
 								{
 									ctor: '::',
-									_0: A2(_user$project$ServerBase$User, _p1, _p0._0._1),
+									_0: A2(_user$project$ServerBase$User, _p0._0._0, _p0._0._1),
 									_1: {ctor: '[]'}
-								}),
-							gameState: function () {
-								var gameState = model.gameState;
-								return _elm_lang$core$Native_Utils.update(
-									gameState,
-									{
-										players: A2(
-											_elm_lang$core$Basics_ops['++'],
-											gameState.players,
-											{
-												ctor: '::',
-												_0: A6(
-													_user$project$Base$Player,
-													A2(_user$project$Base$Position, 0, 0),
-													0,
-													0,
-													0,
-													_p1,
-													_p1),
-												_1: {ctor: '[]'}
-											})
-									});
-							}()
+								})
 						}),
 					{ctor: '[]'});
 			case 'Step':
@@ -6634,14 +6642,14 @@ var _user$project$Server$update = F2(
 					{
 						lastTime: _elm_lang$core$Maybe$Just(timestamp)
 					});
-				var _p2 = model.lastTime;
-				if (_p2.ctor === 'Nothing') {
+				var _p1 = model.lastTime;
+				if (_p1.ctor === 'Nothing') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						modelWithTime,
 						{ctor: '[]'});
 				} else {
-					var delta = timestamp - _p2._0;
+					var delta = timestamp - _p1._0;
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
@@ -6652,8 +6660,8 @@ var _user$project$Server$update = F2(
 						{ctor: '[]'});
 				}
 			default:
-				var _p4 = _p0._0._0;
-				var _p3 = _p0._0._1;
+				var _p3 = _p0._0._0;
+				var _p2 = _p0._0._1;
 				return _elm_lang$core$Basics$always(
 					A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
@@ -6662,7 +6670,7 @@ var _user$project$Server$update = F2(
 							{
 								gameState: A2(
 									_user$project$MsgHandler$handleMsg,
-									{ctor: '_Tuple2', _0: _p3, _1: _p4},
+									{ctor: '_Tuple2', _0: _p2, _1: _p3},
 									model.gameState)
 							}),
 						{ctor: '[]'}))(
@@ -6670,7 +6678,7 @@ var _user$project$Server$update = F2(
 						_elm_lang$core$Debug$log,
 						'Msg, id:',
 						_elm_lang$core$Basics$toString(
-							{ctor: '_Tuple2', _0: _p4, _1: _p3})));
+							{ctor: '_Tuple2', _0: _p3, _1: _p2})));
 		}
 	});
 var _user$project$Server$wsReceive = _elm_lang$core$Native_Platform.incomingPort(
