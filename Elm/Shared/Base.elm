@@ -32,13 +32,15 @@ type alias GameState =
 
 type alias Player =
     { pos : Position
+    , rotation : Float -- In radians
+    , vel : Float
     , name : String
     , id : String
     }
 
 type alias You =
     { ip : String
-    , youId : Maybe String
+    , id : String
     }
 
 type alias TotalState = {state : GameState, you : You}

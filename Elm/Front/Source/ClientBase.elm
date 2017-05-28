@@ -5,6 +5,9 @@ import Window exposing (Size)
 import Mouse
 
 import Base exposing (..)
+import WebSocket as Ws
+
+import Task
 
 
 fps : Float
@@ -59,7 +62,10 @@ type Msg
     | Tick Time
 
     | ServerMsg String
+    | SendMsg String
 
+wsSend : String -> Cmd Msg
+wsSend msg = Task.perform SendMsg <| Task.succeed msg
 
 -- Stolen and modified from http://stackoverflow.com/a/23377822/1753929
 keyboardMap = [

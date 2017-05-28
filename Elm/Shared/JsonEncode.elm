@@ -22,7 +22,8 @@ encodeYou : You -> Value
 encodeYou you =
     object <|
         [ ("ip", string you.ip)
-        ] ++ (toList <| Maybe.map (\x -> ("player", string x)) you.youId)
+        , ("id", string you.id)
+        ]
 
 encodeGameState : GameState -> Value
 encodeGameState state =
@@ -34,6 +35,8 @@ encodePlayer : Player -> Value
 encodePlayer player =
     object
         [ ("pos", encodePosition player.pos)
+        , ("rotation", float player.rotation)
+        , ("vel", float player.vel)
         , ("name", string player.name)
         , ("id", string player.id)
         ]

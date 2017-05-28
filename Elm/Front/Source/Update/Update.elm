@@ -12,6 +12,8 @@ import WebSocket as Ws
 import Base exposing (..)
 import ClientBase exposing (..)
 import JsonDecode exposing (..)
+import GameLogic exposing (..)
+import MsgHandler exposing (..)
 
 import Update.Keyboard exposing (keyDown, keyUp)
 import Update.Mouse exposing (mouseDown, mouseUp, mouseMoved)
@@ -69,10 +71,10 @@ update msg model =
                         (sDx, sDy) =
                             case (model.lastMousePos, model.scrollCenter) of
                                 (Just mouseUnit, Just center) ->
-                                    let mouse = Debug.log "Mouse" <| toPixels model mouseUnit
+                                    let mouse = toPixels model mouseUnit
                                         diff = Position (mouse.x - center.x) (mouse.y - center.y)
-                                        distDiv = dist diff |> max 20 |> min 200
-                                    in (diff.x * delta / distDiv * 40, diff.y * delta / distDiv * 40)
+                                        mult = dist diff |> sqrt
+                                    in (diff.x * delta * mult, diff.y * delta * mult)
                                 _ -> (0, 0)
                         modelScroll = 
                             { model_
@@ -82,7 +84,15 @@ update msg model =
                             case model.lastMousePos of
                                 Just mouse -> Just <| fromPixels modelScroll <| toPixels model mouse
                                 Nothing -> Nothing
-                    in { modelScroll | lastMousePos = newMouse } ! []
+                    in  
+                        { modelScroll 
+                        | lastMousePos = newMouse
+                        , scrollCenter = 
+                            case (model.scrollCenter, model.lastMousePos) of
+                                (Just _, Just pos) -> Just <| toPixels model pos
+                                _ -> Nothing
+                        , gameState = gameStep delta model.gameState
+                        } ! []
 
         ServerMsg msg ->
             case decodeString decodeTotalState msg of
@@ -90,3 +100,12 @@ update msg model =
                     { model | gameState = tState.state, you = Just tState.you } ! []
                 Err _ ->
                     model ! []
+
+        SendMsg msg -> 
+            { model
+            | gameState =
+                case Debug.log "you" model.you of
+                    Just you -> 
+                        handleMsg (you.id, msg) model.gameState
+                    Nothing -> model.gameState
+            } ! [Ws.send model.webSocketUrl msg]

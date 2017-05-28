@@ -5,6 +5,7 @@ ok = true
 make = spawn("python3", ["Make.py"], {cwd: "Elm"})
 make.stdout.on("data", data => process.stdout.write(data.toString("utf-8")))
 make.stderr.on("data", data => {
+    process.stdout.write(data.toString("utf-8"))
     ok = false
 })
 
@@ -114,18 +115,10 @@ function startEverything() {
 
 
     wss.on('connection', (socket => {
-        console.log("Socket:")
-        console.log(socket)
         ip = getIp(socket)
-        console.log("Ip:")
-        console.log(ip)
 
         if (p_clients.filter(client => client.ip === ip).length == 0) {
-            console.log("Ip 2:")
-            console.log(ip)
             id = generateId(20)
-            console.log("Ip 3:")
-            console.log(ip)
             p_clients.push({ip: ip, id: id})
 
             elmServer.ports.clientConnection.send([id, ip])

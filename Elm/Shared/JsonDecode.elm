@@ -23,7 +23,7 @@ decodeYou : Decoder You
 decodeYou =
     P.decode You
         |> P.required "ip" Decode.string
-        |> P.custom (Decode.maybe <| Decode.field "player" Decode.string)
+        |> P.required "id" Decode.string
 
 decodeGameState : Decoder GameState
 decodeGameState =
@@ -34,6 +34,8 @@ decodePlayer : Decoder Player
 decodePlayer =
     P.decode Player
         |> P.required "pos" decodePosition
+        |> P.required "rotation" Decode.float
+        |> P.required "vel" Decode.float
         |> P.required "name" Decode.string
         |> P.required "id" Decode.string
 

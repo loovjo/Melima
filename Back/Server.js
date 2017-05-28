@@ -6197,43 +6197,64 @@ var _user$project$Base$Position = F2(
 var _user$project$Base$GameState = function (a) {
 	return {players: a};
 };
-var _user$project$Base$Player = F3(
-	function (a, b, c) {
-		return {pos: a, name: b, id: c};
+var _user$project$Base$Player = F5(
+	function (a, b, c, d, e) {
+		return {pos: a, rotation: b, vel: c, name: d, id: e};
 	});
 var _user$project$Base$You = F2(
 	function (a, b) {
-		return {ip: a, youId: b};
+		return {ip: a, id: b};
 	});
 var _user$project$Base$TotalState = F2(
 	function (a, b) {
 		return {state: a, you: b};
 	});
 
+var _user$project$GameLogic$playerStep = F2(
+	function (delta, player) {
+		return _elm_lang$core$Native_Utils.update(
+			player,
+			{
+				pos: function () {
+					var _p0 = _elm_lang$core$Basics$fromPolar(
+						{ctor: '_Tuple2', _0: player.vel * delta, _1: player.rotation});
+					var dx = _p0._0;
+					var dy = _p0._1;
+					return {x: player.pos.x + dx, y: player.pos.y + dy};
+				}()
+			});
+	});
+var _user$project$GameLogic$gameStep = F2(
+	function (delta, gameState) {
+		return _elm_lang$core$Native_Utils.update(
+			gameState,
+			{
+				players: A2(
+					_elm_lang$core$List$map,
+					_user$project$GameLogic$playerStep(delta),
+					gameState.players)
+			});
+	});
+
 var _user$project$JsonEncode$encodeYou = function (you) {
 	return _elm_lang$core$Json_Encode$object(
-		A2(
-			_elm_lang$core$Basics_ops['++'],
-			{
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'ip',
+				_1: _elm_lang$core$Json_Encode$string(you.ip)
+			},
+			_1: {
 				ctor: '::',
 				_0: {
 					ctor: '_Tuple2',
-					_0: 'ip',
-					_1: _elm_lang$core$Json_Encode$string(you.ip)
+					_0: 'id',
+					_1: _elm_lang$core$Json_Encode$string(you.id)
 				},
 				_1: {ctor: '[]'}
-			},
-			_user$project$Base$toList(
-				A2(
-					_elm_lang$core$Maybe$map,
-					function (x) {
-						return {
-							ctor: '_Tuple2',
-							_0: 'player',
-							_1: _elm_lang$core$Json_Encode$string(x)
-						};
-					},
-					you.youId))));
+			}
+		});
 };
 var _user$project$JsonEncode$encodePosition = function (pos) {
 	return _elm_lang$core$Json_Encode$object(
@@ -6268,17 +6289,33 @@ var _user$project$JsonEncode$encodePlayer = function (player) {
 				ctor: '::',
 				_0: {
 					ctor: '_Tuple2',
-					_0: 'name',
-					_1: _elm_lang$core$Json_Encode$string(player.name)
+					_0: 'rotation',
+					_1: _elm_lang$core$Json_Encode$float(player.rotation)
 				},
 				_1: {
 					ctor: '::',
 					_0: {
 						ctor: '_Tuple2',
-						_0: 'id',
-						_1: _elm_lang$core$Json_Encode$string(player.id)
+						_0: 'vel',
+						_1: _elm_lang$core$Json_Encode$float(player.vel)
 					},
-					_1: {ctor: '[]'}
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'name',
+							_1: _elm_lang$core$Json_Encode$string(player.name)
+						},
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'id',
+								_1: _elm_lang$core$Json_Encode$string(player.id)
+							},
+							_1: {ctor: '[]'}
+						}
+					}
 				}
 			}
 		});
@@ -6317,26 +6354,233 @@ var _user$project$JsonEncode$encodeTotalState = function (tstate) {
 		});
 };
 
+var _user$project$MsgHandler$RotateR = function (a) {
+	return {ctor: 'RotateR', _0: a};
+};
+var _user$project$MsgHandler$RotateL = function (a) {
+	return {ctor: 'RotateL', _0: a};
+};
+var _user$project$MsgHandler$reqs = {
+	ctor: '::',
+	_0: {
+		ctor: '_Tuple2',
+		_0: 'rotr',
+		_1: function (_p0) {
+			return A2(
+				_elm_lang$core$Maybe$map,
+				_user$project$MsgHandler$RotateR,
+				_elm_lang$core$Result$toMaybe(
+					_elm_lang$core$String$toFloat(_p0)));
+		}
+	},
+	_1: {
+		ctor: '::',
+		_0: {
+			ctor: '_Tuple2',
+			_0: 'rotl',
+			_1: function (_p1) {
+				return A2(
+					_elm_lang$core$Maybe$map,
+					_user$project$MsgHandler$RotateL,
+					_elm_lang$core$Result$toMaybe(
+						_elm_lang$core$String$toFloat(_p1)));
+			}
+		},
+		_1: {ctor: '[]'}
+	}
+};
+var _user$project$MsgHandler$parseTokens = function (_p2) {
+	var _p3 = _p2;
+	return _elm_lang$core$List$head(
+		A2(
+			_elm_lang$core$List$filterMap,
+			function (_p4) {
+				var _p5 = _p4;
+				return _elm_lang$core$Native_Utils.eq(_p3._0, _p5._0) ? _p5._1(_p3._1) : _elm_lang$core$Maybe$Nothing;
+			},
+			_user$project$MsgHandler$reqs));
+};
+var _user$project$MsgHandler$parse = function (msg) {
+	var tokens = A2(_elm_lang$core$String$split, ' ', msg);
+	var _p6 = {
+		ctor: '_Tuple2',
+		_0: A2(_user$project$Base_ops['!!'], tokens, 0),
+		_1: A2(_user$project$Base_ops['!!'], tokens, 1)
+	};
+	if (((_p6.ctor === '_Tuple2') && (_p6._0.ctor === 'Just')) && (_p6._1.ctor === 'Just')) {
+		return _user$project$MsgHandler$parseTokens(
+			{ctor: '_Tuple2', _0: _p6._0._0, _1: _p6._1._0});
+	} else {
+		return _elm_lang$core$Maybe$Nothing;
+	}
+};
+var _user$project$MsgHandler$handleMsg = F2(
+	function (_p7, state) {
+		var _p8 = _p7;
+		var updateFn = function () {
+			var pmsg = _user$project$MsgHandler$parse(_p8._1);
+			var _p9 = pmsg;
+			if (_p9.ctor === 'Nothing') {
+				return _elm_lang$core$Basics$identity;
+			} else {
+				var _p10 = _p9._0;
+				if (_p10.ctor === 'RotateR') {
+					return function (x) {
+						return _elm_lang$core$Native_Utils.update(
+							x,
+							{rotation: x.rotation + _p10._0});
+					};
+				} else {
+					return function (x) {
+						return _elm_lang$core$Native_Utils.update(
+							x,
+							{rotation: x.rotation - _p10._0});
+					};
+				}
+			}
+		}();
+		return _elm_lang$core$Native_Utils.update(
+			state,
+			{
+				players: A2(
+					_elm_lang$core$List$map,
+					function (player) {
+						return _elm_lang$core$Native_Utils.eq(player.id, _p8._0) ? updateFn(player) : player;
+					},
+					state.players)
+			});
+	});
+
+var _user$project$ServerBase$Model = F3(
+	function (a, b, c) {
+		return {clientIds: a, gameState: b, lastTime: c};
+	});
+var _user$project$ServerBase$User = F2(
+	function (a, b) {
+		return {id: a, ip: b};
+	});
+
 var _user$project$Server$init = A2(
 	_elm_lang$core$Platform_Cmd_ops['!'],
 	{
 		clientIds: {ctor: '[]'},
 		gameState: _user$project$Base$GameState(
-			{
-				ctor: '::',
-				_0: A3(
-					_user$project$Base$Player,
-					A2(_user$project$Base$Position, 10, 10),
-					'Loovjo',
-					'123'),
-				_1: {ctor: '[]'}
-			})
+			{ctor: '[]'}),
+		lastTime: _elm_lang$core$Maybe$Nothing
 	},
 	{ctor: '[]'});
 var _user$project$Server$wsSend = _elm_lang$core$Native_Platform.outgoingPort(
 	'wsSend',
 	function (v) {
 		return [v._0, v._1];
+	});
+var _user$project$Server$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		switch (_p0.ctor) {
+			case 'Broadcast':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					A2(
+						_elm_lang$core$List$map,
+						function (user) {
+							var you = {ip: user.ip, id: user.id};
+							var totalState = A2(_user$project$Base$TotalState, model.gameState, you);
+							return _user$project$Server$wsSend(
+								{
+									ctor: '_Tuple2',
+									_0: A2(
+										_elm_lang$core$Json_Encode$encode,
+										0,
+										_user$project$JsonEncode$encodeTotalState(totalState)),
+									_1: user.id
+								});
+						},
+						model.clientIds));
+			case 'Connection':
+				var _p1 = _p0._0._0;
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							clientIds: A2(
+								_elm_lang$core$Basics_ops['++'],
+								model.clientIds,
+								{
+									ctor: '::',
+									_0: A2(_user$project$ServerBase$User, _p1, _p0._0._1),
+									_1: {ctor: '[]'}
+								}),
+							gameState: function () {
+								var gameState = model.gameState;
+								return _elm_lang$core$Native_Utils.update(
+									gameState,
+									{
+										players: A2(
+											_elm_lang$core$Basics_ops['++'],
+											gameState.players,
+											{
+												ctor: '::',
+												_0: A5(
+													_user$project$Base$Player,
+													A2(_user$project$Base$Position, 0, 0),
+													0.3,
+													1,
+													_p1,
+													_p1),
+												_1: {ctor: '[]'}
+											})
+									});
+							}()
+						}),
+					{ctor: '[]'});
+			case 'Step':
+				var timestamp = _elm_lang$core$Time$inSeconds(_p0._0);
+				var modelWithTime = _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						lastTime: _elm_lang$core$Maybe$Just(timestamp)
+					});
+				var _p2 = model.lastTime;
+				if (_p2.ctor === 'Nothing') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						modelWithTime,
+						{ctor: '[]'});
+				} else {
+					var delta = timestamp - _p2._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							modelWithTime,
+							{
+								gameState: A2(_user$project$GameLogic$gameStep, delta, model.gameState)
+							}),
+						{ctor: '[]'});
+				}
+			default:
+				var _p4 = _p0._0._0;
+				var _p3 = _p0._0._1;
+				return _elm_lang$core$Basics$always(
+					A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								gameState: A2(
+									_user$project$MsgHandler$handleMsg,
+									{ctor: '_Tuple2', _0: _p3, _1: _p4},
+									model.gameState)
+							}),
+						{ctor: '[]'}))(
+					A2(
+						_elm_lang$core$Debug$log,
+						'Msg, id:',
+						_elm_lang$core$Basics$toString(
+							{ctor: '_Tuple2', _0: _p4, _1: _p3})));
+		}
 	});
 var _user$project$Server$wsReceive = _elm_lang$core$Native_Platform.incomingPort(
 	'wsReceive',
@@ -6366,90 +6610,9 @@ var _user$project$Server$clientConnection = _elm_lang$core$Native_Platform.incom
 				A2(_elm_lang$core$Json_Decode$index, 1, _elm_lang$core$Json_Decode$string));
 		},
 		A2(_elm_lang$core$Json_Decode$index, 0, _elm_lang$core$Json_Decode$string)));
-var _user$project$Server$Model = F2(
-	function (a, b) {
-		return {clientIds: a, gameState: b};
-	});
-var _user$project$Server$User = F2(
-	function (a, b) {
-		return {id: a, ip: b};
-	});
-var _user$project$Server$update = F2(
-	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
-			case 'Broadcast':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					A2(
-						_elm_lang$core$List$map,
-						function (user) {
-							var you = A2(
-								_user$project$Base$You,
-								user.id,
-								_elm_lang$core$Maybe$Just(user.ip));
-							var totalState = A2(_user$project$Base$TotalState, model.gameState, you);
-							return _user$project$Server$wsSend(
-								{
-									ctor: '_Tuple2',
-									_0: A2(
-										_elm_lang$core$Json_Encode$encode,
-										0,
-										_user$project$JsonEncode$encodeTotalState(totalState)),
-									_1: user.id
-								});
-						},
-						model.clientIds));
-			case 'Connection':
-				var _p1 = _p0._0._0;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							clientIds: A2(
-								_elm_lang$core$Basics_ops['++'],
-								model.clientIds,
-								{
-									ctor: '::',
-									_0: A2(_user$project$Server$User, _p1, _p0._0._1),
-									_1: {ctor: '[]'}
-								}),
-							gameState: function () {
-								var gameState = model.gameState;
-								return _elm_lang$core$Native_Utils.update(
-									gameState,
-									{
-										players: A2(
-											_elm_lang$core$Basics_ops['++'],
-											gameState.players,
-											{
-												ctor: '::',
-												_0: A3(
-													_user$project$Base$Player,
-													A2(_user$project$Base$Position, 0, 0),
-													_p1,
-													_p1),
-												_1: {ctor: '[]'}
-											})
-									});
-							}()
-						}),
-					{ctor: '[]'});
-			default:
-				return _elm_lang$core$Basics$always(
-					A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{ctor: '[]'}))(
-					A2(
-						_elm_lang$core$Debug$log,
-						'Msg, id:',
-						_elm_lang$core$Basics$toString(
-							{ctor: '_Tuple2', _0: _p0._0._0, _1: _p0._0._1})));
-		}
-	});
+var _user$project$Server$Step = function (a) {
+	return {ctor: 'Step', _0: a};
+};
 var _user$project$Server$WsReceive = function (a) {
 	return {ctor: 'WsReceive', _0: a};
 };
@@ -6466,11 +6629,15 @@ var _user$project$Server$subs = function (model) {
 			_0: A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second / 10, _user$project$Server$Broadcast),
 			_1: {
 				ctor: '::',
-				_0: _user$project$Server$wsReceive(_user$project$Server$WsReceive),
+				_0: A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second / 60, _user$project$Server$Step),
 				_1: {
 					ctor: '::',
-					_0: _user$project$Server$clientConnection(_user$project$Server$Connection),
-					_1: {ctor: '[]'}
+					_0: _user$project$Server$wsReceive(_user$project$Server$WsReceive),
+					_1: {
+						ctor: '::',
+						_0: _user$project$Server$clientConnection(_user$project$Server$Connection),
+						_1: {ctor: '[]'}
+					}
 				}
 			}
 		});
