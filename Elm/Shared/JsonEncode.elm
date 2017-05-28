@@ -36,6 +36,7 @@ encodePlayer player =
     object
         [ ("pos", encodePosition player.pos)
         , ("rotation", float player.rotation)
+        , ("turning", float player.turning)
         , ("vel", float player.vel)
         , ("name", string player.name)
         , ("id", string player.id)

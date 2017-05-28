@@ -33,6 +33,7 @@ type alias GameState =
 type alias Player =
     { pos : Position
     , rotation : Float -- In radians
+    , turning : Float
     , vel : Float
     , name : String
     , id : String

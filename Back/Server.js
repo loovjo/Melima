@@ -6197,9 +6197,9 @@ var _user$project$Base$Position = F2(
 var _user$project$Base$GameState = function (a) {
 	return {players: a};
 };
-var _user$project$Base$Player = F5(
-	function (a, b, c, d, e) {
-		return {pos: a, rotation: b, vel: c, name: d, id: e};
+var _user$project$Base$Player = F6(
+	function (a, b, c, d, e, f) {
+		return {pos: a, rotation: b, turning: c, vel: d, name: e, id: f};
 	});
 var _user$project$Base$You = F2(
 	function (a, b) {
@@ -6221,7 +6221,8 @@ var _user$project$GameLogic$playerStep = F2(
 					var dx = _p0._0;
 					var dy = _p0._1;
 					return {x: player.pos.x + dx, y: player.pos.y + dy};
-				}()
+				}(),
+				rotation: player.rotation + (player.turning * delta)
 			});
 	});
 var _user$project$GameLogic$gameStep = F2(
@@ -6296,24 +6297,32 @@ var _user$project$JsonEncode$encodePlayer = function (player) {
 					ctor: '::',
 					_0: {
 						ctor: '_Tuple2',
-						_0: 'vel',
-						_1: _elm_lang$core$Json_Encode$float(player.vel)
+						_0: 'turning',
+						_1: _elm_lang$core$Json_Encode$float(player.turning)
 					},
 					_1: {
 						ctor: '::',
 						_0: {
 							ctor: '_Tuple2',
-							_0: 'name',
-							_1: _elm_lang$core$Json_Encode$string(player.name)
+							_0: 'vel',
+							_1: _elm_lang$core$Json_Encode$float(player.vel)
 						},
 						_1: {
 							ctor: '::',
 							_0: {
 								ctor: '_Tuple2',
-								_0: 'id',
-								_1: _elm_lang$core$Json_Encode$string(player.id)
+								_0: 'name',
+								_1: _elm_lang$core$Json_Encode$string(player.name)
 							},
-							_1: {ctor: '[]'}
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'id',
+									_1: _elm_lang$core$Json_Encode$string(player.id)
+								},
+								_1: {ctor: '[]'}
+							}
 						}
 					}
 				}
@@ -6354,21 +6363,21 @@ var _user$project$JsonEncode$encodeTotalState = function (tstate) {
 		});
 };
 
-var _user$project$MsgHandler$RotateR = function (a) {
-	return {ctor: 'RotateR', _0: a};
+var _user$project$MsgHandler$Walk = function (a) {
+	return {ctor: 'Walk', _0: a};
 };
-var _user$project$MsgHandler$RotateL = function (a) {
-	return {ctor: 'RotateL', _0: a};
+var _user$project$MsgHandler$Rotate = function (a) {
+	return {ctor: 'Rotate', _0: a};
 };
 var _user$project$MsgHandler$reqs = {
 	ctor: '::',
 	_0: {
 		ctor: '_Tuple2',
-		_0: 'rotr',
+		_0: 'rot',
 		_1: function (_p0) {
 			return A2(
 				_elm_lang$core$Maybe$map,
-				_user$project$MsgHandler$RotateR,
+				_user$project$MsgHandler$Rotate,
 				_elm_lang$core$Result$toMaybe(
 					_elm_lang$core$String$toFloat(_p0)));
 		}
@@ -6377,11 +6386,11 @@ var _user$project$MsgHandler$reqs = {
 		ctor: '::',
 		_0: {
 			ctor: '_Tuple2',
-			_0: 'rotl',
+			_0: 'walk',
 			_1: function (_p1) {
 				return A2(
 					_elm_lang$core$Maybe$map,
-					_user$project$MsgHandler$RotateL,
+					_user$project$MsgHandler$Walk,
 					_elm_lang$core$Result$toMaybe(
 						_elm_lang$core$String$toFloat(_p1)));
 			}
@@ -6424,17 +6433,17 @@ var _user$project$MsgHandler$handleMsg = F2(
 				return _elm_lang$core$Basics$identity;
 			} else {
 				var _p10 = _p9._0;
-				if (_p10.ctor === 'RotateR') {
+				if (_p10.ctor === 'Rotate') {
 					return function (x) {
 						return _elm_lang$core$Native_Utils.update(
 							x,
-							{rotation: x.rotation + _p10._0});
+							{turning: _p10._0});
 					};
 				} else {
 					return function (x) {
 						return _elm_lang$core$Native_Utils.update(
 							x,
-							{rotation: x.rotation - _p10._0});
+							{vel: _p10._0});
 					};
 				}
 			}
@@ -6523,10 +6532,11 @@ var _user$project$Server$update = F2(
 											gameState.players,
 											{
 												ctor: '::',
-												_0: A5(
+												_0: A6(
 													_user$project$Base$Player,
 													A2(_user$project$Base$Position, 0, 0),
 													0.3,
+													0,
 													1,
 													_p1,
 													_p1),

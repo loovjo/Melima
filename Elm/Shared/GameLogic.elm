@@ -16,4 +16,5 @@ playerStep delta player =
     | pos =
         let (dx, dy) = fromPolar (player.vel * delta, player.rotation)
         in {x = player.pos.x + dx, y = player.pos.y + dy}
+    , rotation = player.rotation + player.turning * delta
     }

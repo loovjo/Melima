@@ -31,9 +31,17 @@ update msg model =
                 Just key -> update (KeyUp key) model
                 Nothing -> model ! []
 
-        KeyDown button -> keyDown model button
+        KeyDown button -> 
+            if not <| List.member button model.keysDown then
+                keyDown 
+                    { model | keysDown = button :: model.keysDown }
+                    button
+            else model ! []
 
-        KeyUp button -> keyUp model button
+        KeyUp button ->
+            keyUp 
+                { model | keysDown = List.filter ((/=)button) model.keysDown } 
+                button
 
         KeyPress code ->
             let chr = fromCode code

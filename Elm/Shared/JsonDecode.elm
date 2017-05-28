@@ -35,6 +35,7 @@ decodePlayer =
     P.decode Player
         |> P.required "pos" decodePosition
         |> P.required "rotation" Decode.float
+        |> P.required "turning" Decode.float
         |> P.required "vel" Decode.float
         |> P.required "name" Decode.string
         |> P.required "id" Decode.string

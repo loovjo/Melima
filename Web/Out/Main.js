@@ -9855,9 +9855,9 @@ var _loovjo$traffic$Base$Position = F2(
 var _loovjo$traffic$Base$GameState = function (a) {
 	return {players: a};
 };
-var _loovjo$traffic$Base$Player = F5(
-	function (a, b, c, d, e) {
-		return {pos: a, rotation: b, vel: c, name: d, id: e};
+var _loovjo$traffic$Base$Player = F6(
+	function (a, b, c, d, e, f) {
+		return {pos: a, rotation: b, turning: c, vel: d, name: e, id: f};
 	});
 var _loovjo$traffic$Base$You = F2(
 	function (a, b) {
@@ -10928,7 +10928,7 @@ var _loovjo$traffic$ClientBase$Model = function (a) {
 												return function (m) {
 													return function (n) {
 														return function (o) {
-															return {gameState: a, you: b, lastTime: c, size: d, currentCombo: e, showDebug: f, err: g, webSocketUrl: h, scroll: i, scrollCenter: j, zoom: k, sideScroll: l, scrollSpeed: m, lastMousePos: n, pressing: o};
+															return {gameState: a, you: b, lastTime: c, size: d, showDebug: e, err: f, webSocketUrl: g, scroll: h, scrollCenter: i, zoom: j, sideScroll: k, scrollSpeed: l, keysDown: m, lastMousePos: n, pressing: o};
 														};
 													};
 												};
@@ -11001,7 +11001,8 @@ var _loovjo$traffic$GameLogic$playerStep = F2(
 					var dx = _p0._0;
 					var dy = _p0._1;
 					return {x: player.pos.x + dx, y: player.pos.y + dy};
-				}()
+				}(),
+				rotation: player.rotation + (player.turning * delta)
 			});
 	});
 var _loovjo$traffic$GameLogic$gameStep = F2(
@@ -11048,13 +11049,17 @@ var _loovjo$traffic$JsonDecode$decodePlayer = A3(
 			_elm_lang$core$Json_Decode$float,
 			A3(
 				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-				'rotation',
+				'turning',
 				_elm_lang$core$Json_Decode$float,
 				A3(
 					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-					'pos',
-					_loovjo$traffic$JsonDecode$decodePosition,
-					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_loovjo$traffic$Base$Player))))));
+					'rotation',
+					_elm_lang$core$Json_Decode$float,
+					A3(
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+						'pos',
+						_loovjo$traffic$JsonDecode$decodePosition,
+						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_loovjo$traffic$Base$Player)))))));
 var _loovjo$traffic$JsonDecode$decodeGameState = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 	'players',
@@ -11070,21 +11075,21 @@ var _loovjo$traffic$JsonDecode$decodeTotalState = A3(
 		_loovjo$traffic$JsonDecode$decodeGameState,
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_loovjo$traffic$Base$TotalState)));
 
-var _loovjo$traffic$MsgHandler$RotateR = function (a) {
-	return {ctor: 'RotateR', _0: a};
+var _loovjo$traffic$MsgHandler$Walk = function (a) {
+	return {ctor: 'Walk', _0: a};
 };
-var _loovjo$traffic$MsgHandler$RotateL = function (a) {
-	return {ctor: 'RotateL', _0: a};
+var _loovjo$traffic$MsgHandler$Rotate = function (a) {
+	return {ctor: 'Rotate', _0: a};
 };
 var _loovjo$traffic$MsgHandler$reqs = {
 	ctor: '::',
 	_0: {
 		ctor: '_Tuple2',
-		_0: 'rotr',
+		_0: 'rot',
 		_1: function (_p0) {
 			return A2(
 				_elm_lang$core$Maybe$map,
-				_loovjo$traffic$MsgHandler$RotateR,
+				_loovjo$traffic$MsgHandler$Rotate,
 				_elm_lang$core$Result$toMaybe(
 					_elm_lang$core$String$toFloat(_p0)));
 		}
@@ -11093,11 +11098,11 @@ var _loovjo$traffic$MsgHandler$reqs = {
 		ctor: '::',
 		_0: {
 			ctor: '_Tuple2',
-			_0: 'rotl',
+			_0: 'walk',
 			_1: function (_p1) {
 				return A2(
 					_elm_lang$core$Maybe$map,
-					_loovjo$traffic$MsgHandler$RotateL,
+					_loovjo$traffic$MsgHandler$Walk,
 					_elm_lang$core$Result$toMaybe(
 						_elm_lang$core$String$toFloat(_p1)));
 			}
@@ -11140,17 +11145,17 @@ var _loovjo$traffic$MsgHandler$handleMsg = F2(
 				return _elm_lang$core$Basics$identity;
 			} else {
 				var _p10 = _p9._0;
-				if (_p10.ctor === 'RotateR') {
+				if (_p10.ctor === 'Rotate') {
 					return function (x) {
 						return _elm_lang$core$Native_Utils.update(
 							x,
-							{rotation: x.rotation + _p10._0});
+							{turning: _p10._0});
 					};
 				} else {
 					return function (x) {
 						return _elm_lang$core$Native_Utils.update(
 							x,
-							{rotation: x.rotation - _p10._0});
+							{vel: _p10._0});
 					};
 				}
 			}
@@ -11181,10 +11186,24 @@ var _loovjo$traffic$Update_Keyboard$keyUp = F2(
 			_elm_lang$core$Native_Utils.update(
 				model,
 				{scrollCenter: _elm_lang$core$Maybe$Nothing}),
-			{ctor: '[]'}) : A2(
+			{ctor: '[]'}) : ((_elm_lang$core$Native_Utils.eq(button, 'A') || _elm_lang$core$Native_Utils.eq(button, 'D')) ? A2(
 			_elm_lang$core$Platform_Cmd_ops['!'],
 			model,
-			{ctor: '[]'});
+			{
+				ctor: '::',
+				_0: _loovjo$traffic$ClientBase$wsSend('rot 0'),
+				_1: {ctor: '[]'}
+			}) : ((_elm_lang$core$Native_Utils.eq(button, 'W') || _elm_lang$core$Native_Utils.eq(button, 'S')) ? A2(
+			_elm_lang$core$Platform_Cmd_ops['!'],
+			model,
+			{
+				ctor: '::',
+				_0: _loovjo$traffic$ClientBase$wsSend('walk 0'),
+				_1: {ctor: '[]'}
+			}) : A2(
+			_elm_lang$core$Platform_Cmd_ops['!'],
+			model,
+			{ctor: '[]'})));
 	});
 var _loovjo$traffic$Update_Keyboard$keyDown = F2(
 	function (model, button) {
@@ -11213,7 +11232,7 @@ var _loovjo$traffic$Update_Keyboard$keyDown = F2(
 					model,
 					{
 						ctor: '::',
-						_0: _loovjo$traffic$ClientBase$wsSend('rotl 0.3'),
+						_0: _loovjo$traffic$ClientBase$wsSend('rot -6'),
 						_1: {ctor: '[]'}
 					});
 			} else {
@@ -11223,14 +11242,36 @@ var _loovjo$traffic$Update_Keyboard$keyDown = F2(
 						model,
 						{
 							ctor: '::',
-							_0: _loovjo$traffic$ClientBase$wsSend('rotr 0.3'),
+							_0: _loovjo$traffic$ClientBase$wsSend('rot 6'),
 							_1: {ctor: '[]'}
 						});
 				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{ctor: '[]'});
+					if (_elm_lang$core$Native_Utils.eq(button, 'W')) {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{
+								ctor: '::',
+								_0: _loovjo$traffic$ClientBase$wsSend('walk 10'),
+								_1: {ctor: '[]'}
+							});
+					} else {
+						if (_elm_lang$core$Native_Utils.eq(button, 'S')) {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								model,
+								{
+									ctor: '::',
+									_0: _loovjo$traffic$ClientBase$wsSend('walk -7'),
+									_1: {ctor: '[]'}
+								});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								model,
+								{ctor: '[]'});
+						}
+					}
 				}
 			}
 		}
@@ -11293,9 +11334,34 @@ var _loovjo$traffic$Update_Update$update = F2(
 							{ctor: '[]'});
 					}
 				case 'KeyDown':
-					return A2(_loovjo$traffic$Update_Keyboard$keyDown, model, _p0._0);
+					var _p3 = _p0._0;
+					return (!A2(_elm_lang$core$List$member, _p3, model.keysDown)) ? A2(
+						_loovjo$traffic$Update_Keyboard$keyDown,
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								keysDown: {ctor: '::', _0: _p3, _1: model.keysDown}
+							}),
+						_p3) : A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{ctor: '[]'});
 				case 'KeyUp':
-					return A2(_loovjo$traffic$Update_Keyboard$keyUp, model, _p0._0);
+					var _p4 = _p0._0;
+					return A2(
+						_loovjo$traffic$Update_Keyboard$keyUp,
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								keysDown: A2(
+									_elm_lang$core$List$filter,
+									F2(
+										function (x, y) {
+											return !_elm_lang$core$Native_Utils.eq(x, y);
+										})(_p4),
+									model.keysDown)
+							}),
+						_p4);
 				case 'KeyPress':
 					var chr = _elm_lang$core$Char$fromCode(_p0._0);
 					return A2(
@@ -11303,24 +11369,24 @@ var _loovjo$traffic$Update_Update$update = F2(
 						model,
 						{ctor: '[]'});
 				case 'MouseDown':
-					var _p3 = _p0._0;
+					var _p5 = _p0._0;
 					return A2(
 						_loovjo$traffic$Update_Mouse$mouseDown,
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
 								lastMousePos: _elm_lang$core$Maybe$Just(
-									A2(_loovjo$traffic$ClientBase$decodeMouse, model, _p3)),
+									A2(_loovjo$traffic$ClientBase$decodeMouse, model, _p5)),
 								pressing: true
 							}),
-						A2(_loovjo$traffic$ClientBase$decodeMouse, model, _p3));
+						A2(_loovjo$traffic$ClientBase$decodeMouse, model, _p5));
 				case 'MouseUp':
-					var _p4 = A2(
+					var _p6 = A2(
 						_loovjo$traffic$Update_Mouse$mouseDown,
 						model,
 						A2(_loovjo$traffic$ClientBase$decodeMouse, model, _p0._0));
-					var result = _p4._0;
-					var cmd = _p4._1;
+					var result = _p6._0;
+					var cmd = _p6._1;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
@@ -11329,33 +11395,33 @@ var _loovjo$traffic$Update_Update$update = F2(
 						_1: cmd
 					};
 				case 'MouseMoved':
-					var _p6 = _p0._0;
-					var _p5 = A2(
+					var _p8 = _p0._0;
+					var _p7 = A2(
 						_loovjo$traffic$Update_Mouse$mouseMoved,
 						model,
-						A2(_loovjo$traffic$ClientBase$decodeMouse, model, _p6));
-					var result = _p5._0;
-					var cmd = _p5._1;
+						A2(_loovjo$traffic$ClientBase$decodeMouse, model, _p8));
+					var result = _p7._0;
+					var cmd = _p7._1;
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							result,
 							{
 								lastMousePos: _elm_lang$core$Maybe$Just(
-									A2(_loovjo$traffic$ClientBase$decodeMouse, model, _p6))
+									A2(_loovjo$traffic$ClientBase$decodeMouse, model, _p8))
 							}),
 						_1: cmd
 					};
 				case 'WsMsg':
-					var _p7 = A2(_elm_lang$core$Json_Decode$decodeString, _loovjo$traffic$JsonDecode$decodeTotalState, _p0._0);
-					if (_p7.ctor === 'Ok') {
+					var _p9 = A2(_elm_lang$core$Json_Decode$decodeString, _loovjo$traffic$JsonDecode$decodeTotalState, _p0._0);
+					if (_p9.ctor === 'Ok') {
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
 								model,
 								{
-									gameState: _p7._0.state,
-									you: _elm_lang$core$Maybe$Just(_p7._0.you),
+									gameState: _p9._0.state,
+									you: _elm_lang$core$Maybe$Just(_p9._0.you),
 									err: _elm_lang$core$Maybe$Nothing
 								}),
 							{ctor: '[]'});
@@ -11365,12 +11431,12 @@ var _loovjo$traffic$Update_Update$update = F2(
 							_elm_lang$core$Native_Utils.update(
 								model,
 								{
-									err: _elm_lang$core$Maybe$Just(_p7._0)
+									err: _elm_lang$core$Maybe$Just(_p9._0)
 								}),
 							{ctor: '[]'});
 					}
 				case 'SizeChanged':
-					var _p8 = _p0._0;
+					var _p10 = _p0._0;
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
@@ -11379,8 +11445,8 @@ var _loovjo$traffic$Update_Update$update = F2(
 								size: _elm_lang$core$Maybe$Just(
 									A2(
 										_loovjo$traffic$Base$Position,
-										_elm_lang$core$Basics$toFloat(_p8.width),
-										_elm_lang$core$Basics$toFloat(_p8.height)))
+										_elm_lang$core$Basics$toFloat(_p10.width),
+										_elm_lang$core$Basics$toFloat(_p10.height)))
 							}),
 						{ctor: '[]'});
 				case 'Tick':
@@ -11390,20 +11456,20 @@ var _loovjo$traffic$Update_Update$update = F2(
 						{
 							lastTime: _elm_lang$core$Maybe$Just(time)
 						});
-					var _p9 = model.lastTime;
-					if (_p9.ctor === 'Nothing') {
+					var _p11 = model.lastTime;
+					if (_p11.ctor === 'Nothing') {
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							model_,
 							{ctor: '[]'});
 					} else {
-						var delta = time - _p9._0;
-						var _p10 = function () {
-							var _p11 = {ctor: '_Tuple2', _0: model.lastMousePos, _1: model.scrollCenter};
-							if (((_p11.ctor === '_Tuple2') && (_p11._0.ctor === 'Just')) && (_p11._1.ctor === 'Just')) {
-								var _p12 = _p11._1._0;
-								var mouse = A2(_loovjo$traffic$ClientBase$toPixels, model, _p11._0._0);
-								var diff = A2(_loovjo$traffic$Base$Position, mouse.x - _p12.x, mouse.y - _p12.y);
+						var delta = time - _p11._0;
+						var _p12 = function () {
+							var _p13 = {ctor: '_Tuple2', _0: model.lastMousePos, _1: model.scrollCenter};
+							if (((_p13.ctor === '_Tuple2') && (_p13._0.ctor === 'Just')) && (_p13._1.ctor === 'Just')) {
+								var _p14 = _p13._1._0;
+								var mouse = A2(_loovjo$traffic$ClientBase$toPixels, model, _p13._0._0);
+								var diff = A2(_loovjo$traffic$Base$Position, mouse.x - _p14.x, mouse.y - _p14.y);
 								var mult = _elm_lang$core$Basics$sqrt(
 									_loovjo$traffic$Base$dist(diff));
 								return {ctor: '_Tuple2', _0: (diff.x * delta) * mult, _1: (diff.y * delta) * mult};
@@ -11411,21 +11477,21 @@ var _loovjo$traffic$Update_Update$update = F2(
 								return {ctor: '_Tuple2', _0: 0, _1: 0};
 							}
 						}();
-						var sDx = _p10._0;
-						var sDy = _p10._1;
+						var sDx = _p12._0;
+						var sDy = _p12._1;
 						var modelScroll = _elm_lang$core$Native_Utils.update(
 							model_,
 							{
 								scroll: {x: model.scroll.x + sDx, y: model.scroll.y + sDy}
 							});
 						var newMouse = function () {
-							var _p13 = model.lastMousePos;
-							if (_p13.ctor === 'Just') {
+							var _p15 = model.lastMousePos;
+							if (_p15.ctor === 'Just') {
 								return _elm_lang$core$Maybe$Just(
 									A2(
 										_loovjo$traffic$ClientBase$fromPixels,
 										modelScroll,
-										A2(_loovjo$traffic$ClientBase$toPixels, model, _p13._0)));
+										A2(_loovjo$traffic$ClientBase$toPixels, model, _p15._0)));
 							} else {
 								return _elm_lang$core$Maybe$Nothing;
 							}
@@ -11437,10 +11503,10 @@ var _loovjo$traffic$Update_Update$update = F2(
 								{
 									lastMousePos: newMouse,
 									scrollCenter: function () {
-										var _p14 = {ctor: '_Tuple2', _0: model.scrollCenter, _1: model.lastMousePos};
-										if (((_p14.ctor === '_Tuple2') && (_p14._0.ctor === 'Just')) && (_p14._1.ctor === 'Just')) {
+										var _p16 = {ctor: '_Tuple2', _0: model.scrollCenter, _1: model.lastMousePos};
+										if (((_p16.ctor === '_Tuple2') && (_p16._0.ctor === 'Just')) && (_p16._1.ctor === 'Just')) {
 											return _elm_lang$core$Maybe$Just(
-												A2(_loovjo$traffic$ClientBase$toPixels, model, _p14._1._0));
+												A2(_loovjo$traffic$ClientBase$toPixels, model, _p16._1._0));
 										} else {
 											return _elm_lang$core$Maybe$Nothing;
 										}
@@ -11450,16 +11516,16 @@ var _loovjo$traffic$Update_Update$update = F2(
 							{ctor: '[]'});
 					}
 				case 'ServerMsg':
-					var _p15 = A2(_elm_lang$core$Json_Decode$decodeString, _loovjo$traffic$JsonDecode$decodeTotalState, _p0._0);
-					if (_p15.ctor === 'Ok') {
-						var _p16 = _p15._0;
+					var _p17 = A2(_elm_lang$core$Json_Decode$decodeString, _loovjo$traffic$JsonDecode$decodeTotalState, _p0._0);
+					if (_p17.ctor === 'Ok') {
+						var _p18 = _p17._0;
 						return A2(
 							_elm_lang$core$Platform_Cmd_ops['!'],
 							_elm_lang$core$Native_Utils.update(
 								model,
 								{
-									gameState: _p16.state,
-									you: _elm_lang$core$Maybe$Just(_p16.you)
+									gameState: _p18.state,
+									you: _elm_lang$core$Maybe$Just(_p18.you)
 								}),
 							{ctor: '[]'});
 					} else {
@@ -11469,18 +11535,18 @@ var _loovjo$traffic$Update_Update$update = F2(
 							{ctor: '[]'});
 					}
 				default:
-					var _p18 = _p0._0;
+					var _p20 = _p0._0;
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
 								gameState: function () {
-									var _p17 = A2(_elm_lang$core$Debug$log, 'you', model.you);
-									if (_p17.ctor === 'Just') {
+									var _p19 = A2(_elm_lang$core$Debug$log, 'you', model.you);
+									if (_p19.ctor === 'Just') {
 										return A2(
 											_loovjo$traffic$MsgHandler$handleMsg,
-											{ctor: '_Tuple2', _0: _p17._0.id, _1: _p18},
+											{ctor: '_Tuple2', _0: _p19._0.id, _1: _p20},
 											model.gameState);
 									} else {
 										return model.gameState;
@@ -11489,7 +11555,7 @@ var _loovjo$traffic$Update_Update$update = F2(
 							}),
 						{
 							ctor: '::',
-							_0: A2(_elm_lang$websocket$WebSocket$send, model.webSocketUrl, _p18),
+							_0: A2(_elm_lang$websocket$WebSocket$send, model.webSocketUrl, _p20),
 							_1: {ctor: '[]'}
 						});
 			}
@@ -11729,7 +11795,6 @@ var _loovjo$traffic$Main$init = function (flags) {
 			you: _elm_lang$core$Maybe$Nothing,
 			lastTime: _elm_lang$core$Maybe$Nothing,
 			size: _elm_lang$core$Maybe$Nothing,
-			currentCombo: {ctor: '[]'},
 			showDebug: false,
 			err: _elm_lang$core$Maybe$Nothing,
 			webSocketUrl: flags.webSocketUrl,
@@ -11738,6 +11803,7 @@ var _loovjo$traffic$Main$init = function (flags) {
 			zoom: 10,
 			sideScroll: 100,
 			scrollSpeed: 100,
+			keysDown: {ctor: '[]'},
 			lastMousePos: _elm_lang$core$Maybe$Nothing,
 			pressing: false
 		},

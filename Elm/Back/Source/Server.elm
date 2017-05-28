@@ -46,7 +46,7 @@ update msg model =
             , gameState =
                 let gameState = model.gameState 
                 in  { gameState 
-                    | players = gameState.players ++ [Player (Position 0 0) 0.3 1 id id]
+                    | players = gameState.players ++ [Player (Position 0 0) 0.3 0 1 id id]
                     }
             } ! []
 

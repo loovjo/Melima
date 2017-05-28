@@ -10,8 +10,8 @@ handleMsg (userId, msg) state =
                 Nothing -> identity
                 Just req ->
                     case req of
-                        RotateR dtheta -> (\x -> {x | rotation = x.rotation + dtheta})
-                        RotateL dtheta -> (\x -> {x | rotation = x.rotation - dtheta})
+                        Rotate theta -> (\x -> {x | turning = theta})
+                        Walk r -> (\x -> {x | vel = r})
     in
         { state
         | players = List.map (\player -> if player.id == userId then updateFn player else player) state.players
@@ -19,8 +19,8 @@ handleMsg (userId, msg) state =
 
 
 type Req
-    = RotateL Float
-    | RotateR Float
+    = Rotate Float
+    | Walk Float
 
 parse : String -> Maybe Req
 parse msg =
@@ -36,7 +36,7 @@ parseTokens (t1, t2) =
 
 reqs : List (String, (String -> Maybe Req))
 reqs =
-    [ ("rotr", (Maybe.map RotateR) << Result.toMaybe << String.toFloat)
-    , ("rotl", (Maybe.map RotateL) << Result.toMaybe << String.toFloat)
+    [ ("rot", (Maybe.map Rotate) << Result.toMaybe << String.toFloat)
+    , ("walk", (Maybe.map Walk) << Result.toMaybe << String.toFloat)
     ]
 

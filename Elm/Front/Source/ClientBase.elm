@@ -21,7 +21,6 @@ type alias Model =
     , lastTime : Maybe Float
 
     , size : Maybe Position
-    , currentCombo : List String
 
     , showDebug : Bool
     , err : Maybe String
@@ -33,6 +32,8 @@ type alias Model =
 
     , sideScroll : Float
     , scrollSpeed : Float
+
+    , keysDown : List String
 
     , lastMousePos : Maybe Position -- In units
     , pressing : Bool

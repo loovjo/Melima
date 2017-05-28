@@ -35,7 +35,6 @@ init flags =
         , lastTime = Nothing
 
         , size = Nothing
-        , currentCombo = []
 
         , showDebug = False
         , err = Nothing
@@ -47,6 +46,8 @@ init flags =
 
         , sideScroll = 100
         , scrollSpeed = 100
+
+        , keysDown = []
 
         , lastMousePos = Nothing
         , pressing = False
