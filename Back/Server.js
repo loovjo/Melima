@@ -6517,16 +6517,19 @@ var _user$project$MsgHandler$parse = function (msg) {
 var _user$project$MsgHandler$handleMsg = F2(
 	function (_p8, state) {
 		var _p9 = _p8;
-		var _p14 = _p9._0;
+		var _p15 = _p9._0;
 		var pmsg = _user$project$MsgHandler$parse(_p9._1);
 		var _p10 = pmsg;
 		if (_p10.ctor === 'Nothing') {
 			return state;
 		} else {
-			var _p13 = _p10._0;
-			var _p11 = _p13;
+			var _p14 = _p10._0;
+			var _p11 = _p14;
 			if (_p11.ctor === 'Make') {
-				return _elm_lang$core$Native_Utils.update(
+				var _p12 = _p11._0;
+				return (_elm_lang$core$Native_Utils.cmp(
+					_elm_lang$core$String$length(_p12),
+					0) > 0) ? _elm_lang$core$Native_Utils.update(
 					state,
 					{
 						players: {
@@ -6536,27 +6539,27 @@ var _user$project$MsgHandler$handleMsg = F2(
 								rotation: 0,
 								turning: 0,
 								vel: 0,
-								name: _p11._0,
-								id: _p14
+								name: _p12,
+								id: _p15
 							},
 							_1: state.players
 						}
-					});
+					}) : state;
 			} else {
 				var updateFn = function () {
-					var _p12 = _p13;
-					switch (_p12.ctor) {
+					var _p13 = _p14;
+					switch (_p13.ctor) {
 						case 'Rotate':
 							return function (x) {
 								return _elm_lang$core$Native_Utils.update(
 									x,
-									{turning: _p12._0});
+									{turning: _p13._0});
 							};
 						case 'Walk':
 							return function (x) {
 								return _elm_lang$core$Native_Utils.update(
 									x,
-									{vel: _p12._0});
+									{vel: _p13._0});
 							};
 						default:
 							return _elm_lang$core$Basics$identity;
@@ -6568,7 +6571,7 @@ var _user$project$MsgHandler$handleMsg = F2(
 						players: A2(
 							_elm_lang$core$List$map,
 							function (player) {
-								return _elm_lang$core$Native_Utils.eq(player.id, _p14) ? updateFn(player) : player;
+								return _elm_lang$core$Native_Utils.eq(player.id, _p15) ? updateFn(player) : player;
 							},
 							state.players)
 					});

@@ -10,14 +10,16 @@ handleMsg (userId, msg) state =
         Just req ->
             case req of
                 Make name ->
-                    { state | players = 
-                        { pos = Position 0 0
-                        , rotation = 0
-                        , turning = 0
-                        , vel = 0
-                        , name = name
-                        , id = userId
-                        } :: state.players}
+                    if String.length name > 0 then
+                        { state | players = 
+                            { pos = Position 0 0
+                            , rotation = 0
+                            , turning = 0
+                            , vel = 0
+                            , name = name
+                            , id = userId
+                            } :: state.players}
+                    else state
                 _ ->
                     let updateFn =
                         case req of
