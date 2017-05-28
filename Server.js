@@ -1,20 +1,27 @@
 let spawn = require("child_process").spawn
 
-ok = true
+if (process.argv.indexOf("-C") == -1) {
+    ok = true
 
-make = spawn("python3", ["Make.py"], {cwd: "Elm"})
-make.stdout.on("data", data => process.stdout.write(data.toString("utf-8")))
-make.stderr.on("data", data => {
-    process.stdout.write(data.toString("utf-8"))
-    ok = false
-})
+    make = spawn("python3", ["Make.py"], {cwd: "Elm"})
+    make.stdout.on("data", data => process.stdout.write(data.toString("utf-8")))
+    make.stderr.on("data", data => {
+        process.stdout.write(data.toString("utf-8"))
+        ok = false
+    })
 
-console.log("Compiling...")
+    console.log("Compiling...")
 
-make.on("close", code => {
-    if (code == 0 && ok)
-        startEverything()
-})
+    make.on("close", code => {
+        if (code == 0 && ok)
+            startEverything()
+        }
+    )
+
+}
+else {
+    startEverything()
+}
 
 
 function startEverything() {
