@@ -15,7 +15,7 @@ main = Platform.program {init = init, update = update, subscriptions = subs}
 init : ( Model, Cmd msg )
 init =
     { clientIds = []
-    , gameState = GameState [] 
+    , gameState = GameState [Player (Position 5 5) 0 0 0 "a" "a"]
     , lastTime = Nothing
     } ! []
 
@@ -46,7 +46,7 @@ update msg model =
             , gameState =
                 let gameState = model.gameState 
                 in  { gameState 
-                    | players = gameState.players ++ [Player (Position 0 0) 0.3 0 1 id id]
+                    | players = gameState.players ++ [Player (Position 0 0) 0 0 0 id id]
                     }
             } ! []
 

@@ -6210,22 +6210,85 @@ var _user$project$Base$TotalState = F2(
 		return {state: a, you: b};
 	});
 
+var _user$project$GameLogic$checkPlayerCollisions = F2(
+	function (delta, gameState) {
+		var intersectingPlayers = A2(
+			_elm_lang$core$List$concatMap,
+			function (player1) {
+				return A2(
+					_elm_lang$core$List$filterMap,
+					function (player2) {
+						var pDelta = {x: player1.pos.x - player2.pos.x, y: player1.pos.y - player2.pos.y};
+						return ((_elm_lang$core$Native_Utils.cmp(
+							_user$project$Base$dist(pDelta),
+							2) < 0) && (!_elm_lang$core$Native_Utils.eq(player1.id, player2.id))) ? _elm_lang$core$Maybe$Just(
+							{ctor: '_Tuple2', _0: player1, _1: player2}) : _elm_lang$core$Maybe$Nothing;
+					},
+					gameState.players);
+			},
+			gameState.players);
+		return _elm_lang$core$Native_Utils.update(
+			gameState,
+			{
+				players: A2(
+					_elm_lang$core$List$map,
+					function (player) {
+						var intersectionsPoses = A2(
+							_elm_lang$core$List$filterMap,
+							function (_p0) {
+								var _p1 = _p0;
+								var _p3 = _p1._1;
+								var _p2 = _p1._0;
+								if (_elm_lang$core$Native_Utils.eq(_p2, player)) {
+									var delta = {x: _p2.pos.x - _p3.pos.x, y: _p2.pos.y - _p3.pos.y};
+									return _elm_lang$core$Maybe$Just(
+										{
+											x: delta.x * (_user$project$Base$dist(delta) - 2),
+											y: delta.y * (_user$project$Base$dist(delta) - 2)
+										});
+								} else {
+									return _elm_lang$core$Maybe$Nothing;
+								}
+							},
+							intersectingPlayers);
+						var sum = function (axis) {
+							return _elm_lang$core$List$sum(
+								A2(_elm_lang$core$List$map, axis, intersectionsPoses));
+						};
+						return _elm_lang$core$Native_Utils.update(
+							player,
+							{
+								pos: {
+									x: player.pos.x - sum(
+										function (_) {
+											return _.x;
+										}),
+									y: player.pos.y - sum(
+										function (_) {
+											return _.y;
+										})
+								}
+							});
+					},
+					gameState.players)
+			});
+	});
 var _user$project$GameLogic$playerStep = F2(
 	function (delta, player) {
 		return _elm_lang$core$Native_Utils.update(
 			player,
 			{
 				pos: function () {
-					var _p0 = _elm_lang$core$Basics$fromPolar(
+					var _p4 = _elm_lang$core$Basics$fromPolar(
 						{ctor: '_Tuple2', _0: player.vel * delta, _1: player.rotation});
-					var dx = _p0._0;
-					var dy = _p0._1;
+					var dx = _p4._0;
+					var dy = _p4._1;
 					return {x: player.pos.x + dx, y: player.pos.y + dy};
 				}(),
 				rotation: player.rotation + (player.turning * delta)
 			});
 	});
-var _user$project$GameLogic$gameStep = F2(
+var _user$project$GameLogic$stepPlayers = F2(
 	function (delta, gameState) {
 		return _elm_lang$core$Native_Utils.update(
 			gameState,
@@ -6235,6 +6298,13 @@ var _user$project$GameLogic$gameStep = F2(
 					_user$project$GameLogic$playerStep(delta),
 					gameState.players)
 			});
+	});
+var _user$project$GameLogic$gameStep = F2(
+	function (delta, gameState) {
+		return A2(
+			_user$project$GameLogic$checkPlayerCollisions,
+			delta,
+			A2(_user$project$GameLogic$stepPlayers, delta, gameState));
 	});
 
 var _user$project$JsonEncode$encodeYou = function (you) {
@@ -6474,7 +6544,18 @@ var _user$project$Server$init = A2(
 	{
 		clientIds: {ctor: '[]'},
 		gameState: _user$project$Base$GameState(
-			{ctor: '[]'}),
+			{
+				ctor: '::',
+				_0: A6(
+					_user$project$Base$Player,
+					A2(_user$project$Base$Position, 5, 5),
+					0,
+					0,
+					0,
+					'a',
+					'a'),
+				_1: {ctor: '[]'}
+			}),
 		lastTime: _elm_lang$core$Maybe$Nothing
 	},
 	{ctor: '[]'});
@@ -6535,9 +6616,9 @@ var _user$project$Server$update = F2(
 												_0: A6(
 													_user$project$Base$Player,
 													A2(_user$project$Base$Position, 0, 0),
-													0.3,
 													0,
-													1,
+													0,
+													0,
 													_p1,
 													_p1),
 												_1: {ctor: '[]'}
