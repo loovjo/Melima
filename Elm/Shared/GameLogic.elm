@@ -51,7 +51,7 @@ checkPlayerCollisions delta gameState =
                                     in Just {x = delta.x * (dist delta - 2), y = delta.y * (dist delta - 2)}
                                else Nothing
                         ) intersectingPlayers
-                        sum axis = List.sum <| List.map axis intersectionsPoses
+                        sum axis = (List.sum <| List.map axis intersectionsPoses) / 3
                     in 
                         { player 
                         | pos = {x = player.pos.x - sum .x, y = player.pos.y - sum .y}

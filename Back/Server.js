@@ -6253,7 +6253,7 @@ var _user$project$GameLogic$checkPlayerCollisions = F2(
 							intersectingPlayers);
 						var sum = function (axis) {
 							return _elm_lang$core$List$sum(
-								A2(_elm_lang$core$List$map, axis, intersectionsPoses));
+								A2(_elm_lang$core$List$map, axis, intersectionsPoses)) / 3;
 						};
 						return _elm_lang$core$Native_Utils.update(
 							player,
