@@ -103,7 +103,7 @@ function startEverything() {
 
             if (fs.existsSync(filePath)) {
                 if (!fs.lstatSync(filePath).isFile()) {
-                    filePath = "Web/main.html"
+                    filePath = "Web/Main.html"
                 }
                 content = fs.readFileSync(filePath)
                 res.setHeader("Content-Type", "text/html")
