@@ -40,4 +40,6 @@ encodePlayer player =
         , ("vel", float player.vel)
         , ("name", string player.name)
         , ("id", string player.id)
+        , ("health", float player.health)
+        , ("maxHealth", float player.maxHealth)
         ]

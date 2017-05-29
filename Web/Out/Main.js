@@ -9870,6 +9870,7 @@ var _loovjo$traffic$Base$toList = function (hmm) {
 		return {ctor: '[]'};
 	}
 };
+var _loovjo$traffic$Base$level1Health = 20;
 var _loovjo$traffic$Base_ops = _loovjo$traffic$Base_ops || {};
 _loovjo$traffic$Base_ops['!!'] = F2(
 	function (lst, idx) {
@@ -9883,9 +9884,9 @@ var _loovjo$traffic$Base$Position = F2(
 var _loovjo$traffic$Base$GameState = function (a) {
 	return {players: a};
 };
-var _loovjo$traffic$Base$Player = F6(
-	function (a, b, c, d, e, f) {
-		return {pos: a, rotation: b, turning: c, vel: d, name: e, id: f};
+var _loovjo$traffic$Base$Player = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {pos: a, rotation: b, turning: c, vel: d, name: e, id: f, health: g, maxHealth: h};
 	});
 var _loovjo$traffic$Base$You = F2(
 	function (a, b) {
@@ -11028,6 +11029,19 @@ var _loovjo$traffic$ClientBase$KeyDown_ = function (a) {
 	return {ctor: 'KeyDown_', _0: a};
 };
 
+var _loovjo$traffic$GameLogic$checkDeath = F2(
+	function (delta, gameState) {
+		return _elm_lang$core$Native_Utils.update(
+			gameState,
+			{
+				players: A2(
+					_elm_lang$core$List$filter,
+					function (player) {
+						return _elm_lang$core$Native_Utils.cmp(player.health, 0) > 0;
+					},
+					gameState.players)
+			});
+	});
 var _loovjo$traffic$GameLogic$checkPlayerCollisions = F2(
 	function (delta, gameState) {
 		var intersectingPlayers = A2(
@@ -11085,7 +11099,18 @@ var _loovjo$traffic$GameLogic$checkPlayerCollisions = F2(
 										function (_) {
 											return _.y;
 										})
-								}
+								},
+								health: player.health - ((_loovjo$traffic$Base$dist(
+									{
+										x: sum(
+											function (_) {
+												return _.x;
+											}),
+										y: sum(
+											function (_) {
+												return _.y;
+											})
+									}) * delta) * 200)
 							});
 					},
 					gameState.players)
@@ -11120,9 +11145,12 @@ var _loovjo$traffic$GameLogic$stepPlayers = F2(
 var _loovjo$traffic$GameLogic$gameStep = F2(
 	function (delta, gameState) {
 		return A2(
-			_loovjo$traffic$GameLogic$checkPlayerCollisions,
+			_loovjo$traffic$GameLogic$checkDeath,
 			delta,
-			A2(_loovjo$traffic$GameLogic$stepPlayers, delta, gameState));
+			A2(
+				_loovjo$traffic$GameLogic$checkPlayerCollisions,
+				delta,
+				A2(_loovjo$traffic$GameLogic$stepPlayers, delta, gameState)));
 	});
 
 var _loovjo$traffic$JsonDecode$decodeYou = A3(
@@ -11145,29 +11173,37 @@ var _loovjo$traffic$JsonDecode$decodePosition = A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_loovjo$traffic$Base$Position)));
 var _loovjo$traffic$JsonDecode$decodePlayer = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-	'id',
-	_elm_lang$core$Json_Decode$string,
+	'maxHealth',
+	_elm_lang$core$Json_Decode$float,
 	A3(
 		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-		'name',
-		_elm_lang$core$Json_Decode$string,
+		'health',
+		_elm_lang$core$Json_Decode$float,
 		A3(
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-			'vel',
-			_elm_lang$core$Json_Decode$float,
+			'id',
+			_elm_lang$core$Json_Decode$string,
 			A3(
 				_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-				'turning',
-				_elm_lang$core$Json_Decode$float,
+				'name',
+				_elm_lang$core$Json_Decode$string,
 				A3(
 					_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-					'rotation',
+					'vel',
 					_elm_lang$core$Json_Decode$float,
 					A3(
 						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-						'pos',
-						_loovjo$traffic$JsonDecode$decodePosition,
-						_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_loovjo$traffic$Base$Player)))))));
+						'turning',
+						_elm_lang$core$Json_Decode$float,
+						A3(
+							_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+							'rotation',
+							_elm_lang$core$Json_Decode$float,
+							A3(
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+								'pos',
+								_loovjo$traffic$JsonDecode$decodePosition,
+								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_loovjo$traffic$Base$Player)))))))));
 var _loovjo$traffic$JsonDecode$decodeGameState = A3(
 	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
 	'players',
@@ -11292,7 +11328,9 @@ var _loovjo$traffic$MsgHandler$handleMsg = F2(
 								turning: 0,
 								vel: 0,
 								name: _p12,
-								id: _p15
+								id: _p15,
+								health: _loovjo$traffic$Base$level1Health,
+								maxHealth: _loovjo$traffic$Base$level1Health
 							},
 							_1: state.players
 						}
@@ -11772,6 +11810,19 @@ var _loovjo$traffic$Update_Update$update = F2(
 
 var _loovjo$traffic$Render_Render$renderPlayer = F2(
 	function (model, player) {
+		var _p0 = {
+			ctor: '_Tuple2',
+			_0: function (_) {
+				return _.x;
+			}(
+				A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos)),
+			_1: function (_) {
+				return _.y;
+			}(
+				A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos))
+		};
+		var cx = _p0._0;
+		var cy = _p0._1;
 		return {
 			ctor: '::',
 			_0: A2(
@@ -11779,19 +11830,11 @@ var _loovjo$traffic$Render_Render$renderPlayer = F2(
 				{
 					ctor: '::',
 					_0: _elm_lang$svg$Svg_Attributes$cx(
-						_elm_lang$core$Basics$toString(
-							function (_) {
-								return _.x;
-							}(
-								A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos)))),
+						_elm_lang$core$Basics$toString(cx)),
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$svg$Svg_Attributes$cy(
-							_elm_lang$core$Basics$toString(
-								function (_) {
-									return _.y;
-								}(
-									A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos)))),
+							_elm_lang$core$Basics$toString(cy)),
 						_1: {
 							ctor: '::',
 							_0: _elm_lang$svg$Svg_Attributes$r(
@@ -11800,9 +11843,9 @@ var _loovjo$traffic$Render_Render$renderPlayer = F2(
 								ctor: '::',
 								_0: _elm_lang$svg$Svg_Attributes$fill(
 									function () {
-										var _p0 = model.you;
-										if (_p0.ctor === 'Just') {
-											return _elm_lang$core$Native_Utils.eq(_p0._0.id, player.id) ? 'blue' : 'red';
+										var _p1 = model.you;
+										if (_p1.ctor === 'Just') {
+											return _elm_lang$core$Native_Utils.eq(_p1._0.id, player.id) ? 'blue' : 'red';
 										} else {
 											return '#1d54ad';
 										}
@@ -11825,113 +11868,159 @@ var _loovjo$traffic$Render_Render$renderPlayer = F2(
 				ctor: '::',
 				_0: A2(
 					_elm_lang$svg$Svg$line,
-					function () {
-						var _p1 = _elm_lang$core$Basics$fromPolar(
-							{ctor: '_Tuple2', _0: model.zoom, _1: player.rotation});
-						var dx = _p1._0;
-						var dy = _p1._1;
-						return {
+					{
+						ctor: '::',
+						_0: _elm_lang$svg$Svg_Attributes$x1(
+							_elm_lang$core$Basics$toString((cx - (5 * model.zoom)) - 2)),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$svg$Svg_Attributes$y1(
+								_elm_lang$core$Basics$toString(cy - (2 * model.zoom))),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$svg$Svg_Attributes$x2(
+									_elm_lang$core$Basics$toString((cx + (5 * model.zoom)) + 2)),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$y2(
+										_elm_lang$core$Basics$toString(cy - (2 * model.zoom))),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$strokeWidth('7'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$stroke('#000000'),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}
+						}
+					},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$svg$Svg$line,
+						{
 							ctor: '::',
 							_0: _elm_lang$svg$Svg_Attributes$x1(
-								_elm_lang$core$Basics$toString(
-									function (_) {
-										return _.x;
-									}(
-										A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos)))),
+								_elm_lang$core$Basics$toString(cx - (5 * model.zoom))),
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$svg$Svg_Attributes$y1(
-									_elm_lang$core$Basics$toString(
-										function (_) {
-											return _.y;
-										}(
-											A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos)))),
+									_elm_lang$core$Basics$toString(cy - (2 * model.zoom))),
 								_1: {
 									ctor: '::',
 									_0: _elm_lang$svg$Svg_Attributes$x2(
-										_elm_lang$core$Basics$toString(
-											dx + function (_) {
-												return _.x;
-											}(
-												A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos)))),
+										_elm_lang$core$Basics$toString((cx - (5 * model.zoom)) + (((model.zoom * 10) * player.health) / player.maxHealth))),
 									_1: {
 										ctor: '::',
 										_0: _elm_lang$svg$Svg_Attributes$y2(
-											_elm_lang$core$Basics$toString(
-												dy + function (_) {
-													return _.y;
-												}(
-													A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos)))),
+											_elm_lang$core$Basics$toString(cy - (2 * model.zoom))),
 										_1: {
 											ctor: '::',
 											_0: _elm_lang$svg$Svg_Attributes$strokeWidth('3'),
 											_1: {
 												ctor: '::',
-												_0: _elm_lang$svg$Svg_Attributes$stroke('#000000'),
+												_0: _elm_lang$svg$Svg_Attributes$stroke('#FF0000'),
 												_1: {ctor: '[]'}
 											}
 										}
 									}
 								}
 							}
-						};
-					}(),
-					{ctor: '[]'}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$svg$Svg$text_,
-						{
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$x(
-								_elm_lang$core$Basics$toString(
-									function (_) {
-										return _.x;
-									}(
-										A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos)))),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$y(
-									_elm_lang$core$Basics$toString(
-										(model.zoom * 2.5) + function (_) {
-											return _.y;
-										}(
-											A2(_loovjo$traffic$ClientBase$toPixels, model, player.pos)))),
-								_1: {
+						},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$svg$Svg$line,
+							function () {
+								var _p2 = _elm_lang$core$Basics$fromPolar(
+									{ctor: '_Tuple2', _0: model.zoom, _1: player.rotation});
+								var dx = _p2._0;
+								var dy = _p2._1;
+								return {
 									ctor: '::',
-									_0: _elm_lang$svg$Svg_Attributes$fontFamily('Verdana'),
+									_0: _elm_lang$svg$Svg_Attributes$x1(
+										_elm_lang$core$Basics$toString(cx)),
 									_1: {
 										ctor: '::',
-										_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
+										_0: _elm_lang$svg$Svg_Attributes$y1(
+											_elm_lang$core$Basics$toString(cy)),
 										_1: {
 											ctor: '::',
-											_0: _elm_lang$svg$Svg_Attributes$fontSize(
-												_elm_lang$core$Basics$toString(model.zoom)),
-											_1: {ctor: '[]'}
+											_0: _elm_lang$svg$Svg_Attributes$x2(
+												_elm_lang$core$Basics$toString(dx + cx)),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$y2(
+													_elm_lang$core$Basics$toString(dy + cy)),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$strokeWidth('3'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$stroke('#000000'),
+														_1: {ctor: '[]'}
+													}
+												}
+											}
 										}
 									}
-								}
-							}
-						},
-						{
+								};
+							}(),
+							{ctor: '[]'}),
+						_1: {
 							ctor: '::',
-							_0: _elm_lang$svg$Svg$text(player.name),
+							_0: A2(
+								_elm_lang$svg$Svg$text_,
+								{
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$x(
+										_elm_lang$core$Basics$toString(cx)),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$y(
+											_elm_lang$core$Basics$toString((model.zoom * 2.5) + cy)),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$fontFamily('Verdana'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$fontSize(
+														_elm_lang$core$Basics$toString(model.zoom)),
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$svg$Svg$text(player.name),
+									_1: {ctor: '[]'}
+								}),
 							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
+						}
+					}
 				}
 			}
 		};
 	});
 var _loovjo$traffic$Render_Render$view = function (model) {
-	var _p2 = model.size;
-	if (_p2.ctor === 'Nothing') {
+	var _p3 = model.size;
+	if (_p3.ctor === 'Nothing') {
 		return A2(
 			_elm_lang$html$Html$div,
 			{ctor: '[]'},
 			{ctor: '[]'});
 	} else {
-		var _p5 = _p2._0;
+		var _p6 = _p3._0;
 		return A2(
 			_elm_lang$html$Html$div,
 			{ctor: '[]'},
@@ -11942,11 +12031,11 @@ var _loovjo$traffic$Render_Render$view = function (model) {
 					{
 						ctor: '::',
 						_0: _elm_lang$svg$Svg_Attributes$width(
-							_elm_lang$core$Basics$toString(_p5.x)),
+							_elm_lang$core$Basics$toString(_p6.x)),
 						_1: {
 							ctor: '::',
 							_0: _elm_lang$svg$Svg_Attributes$height(
-								_elm_lang$core$Basics$toString(_p5.y)),
+								_elm_lang$core$Basics$toString(_p6.y)),
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$svg$Svg_Attributes$style('background: #337733'),
@@ -11961,22 +12050,22 @@ var _loovjo$traffic$Render_Render$view = function (model) {
 							_loovjo$traffic$Render_Render$renderPlayer(model),
 							model.gameState.players),
 						function () {
-							var _p3 = model.you;
-							if (_p3.ctor === 'Just') {
+							var _p4 = model.you;
+							if (_p4.ctor === 'Just') {
 								return _elm_lang$core$Native_Utils.eq(
 									_elm_lang$core$List$length(
 										A2(
 											_elm_lang$core$List$filter,
-											function (_p4) {
+											function (_p5) {
 												return A2(
 													F2(
 														function (x, y) {
 															return _elm_lang$core$Native_Utils.eq(x, y);
 														}),
-													_p3._0.id,
+													_p4._0.id,
 													function (_) {
 														return _.id;
-													}(_p4));
+													}(_p5));
 											},
 											model.gameState.players)),
 									0) ? {
@@ -11986,11 +12075,11 @@ var _loovjo$traffic$Render_Render$view = function (model) {
 										{
 											ctor: '::',
 											_0: _elm_lang$svg$Svg_Attributes$cx(
-												_elm_lang$core$Basics$toString(_p5.x - 50)),
+												_elm_lang$core$Basics$toString(_p6.x - 50)),
 											_1: {
 												ctor: '::',
 												_0: _elm_lang$svg$Svg_Attributes$cy(
-													_elm_lang$core$Basics$toString(_p5.y - 50)),
+													_elm_lang$core$Basics$toString(_p6.y - 50)),
 												_1: {
 													ctor: '::',
 													_0: _elm_lang$svg$Svg_Attributes$r('20'),

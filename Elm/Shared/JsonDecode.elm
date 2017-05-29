@@ -39,4 +39,6 @@ decodePlayer =
         |> P.required "vel" Decode.float
         |> P.required "name" Decode.string
         |> P.required "id" Decode.string
+        |> P.required "health" Decode.float
+        |> P.required "maxHealth" Decode.float
 

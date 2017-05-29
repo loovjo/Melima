@@ -6184,6 +6184,7 @@ var _user$project$Base$toList = function (hmm) {
 		return {ctor: '[]'};
 	}
 };
+var _user$project$Base$level1Health = 20;
 var _user$project$Base_ops = _user$project$Base_ops || {};
 _user$project$Base_ops['!!'] = F2(
 	function (lst, idx) {
@@ -6197,9 +6198,9 @@ var _user$project$Base$Position = F2(
 var _user$project$Base$GameState = function (a) {
 	return {players: a};
 };
-var _user$project$Base$Player = F6(
-	function (a, b, c, d, e, f) {
-		return {pos: a, rotation: b, turning: c, vel: d, name: e, id: f};
+var _user$project$Base$Player = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {pos: a, rotation: b, turning: c, vel: d, name: e, id: f, health: g, maxHealth: h};
 	});
 var _user$project$Base$You = F2(
 	function (a, b) {
@@ -6210,6 +6211,19 @@ var _user$project$Base$TotalState = F2(
 		return {state: a, you: b};
 	});
 
+var _user$project$GameLogic$checkDeath = F2(
+	function (delta, gameState) {
+		return _elm_lang$core$Native_Utils.update(
+			gameState,
+			{
+				players: A2(
+					_elm_lang$core$List$filter,
+					function (player) {
+						return _elm_lang$core$Native_Utils.cmp(player.health, 0) > 0;
+					},
+					gameState.players)
+			});
+	});
 var _user$project$GameLogic$checkPlayerCollisions = F2(
 	function (delta, gameState) {
 		var intersectingPlayers = A2(
@@ -6267,7 +6281,18 @@ var _user$project$GameLogic$checkPlayerCollisions = F2(
 										function (_) {
 											return _.y;
 										})
-								}
+								},
+								health: player.health - ((_user$project$Base$dist(
+									{
+										x: sum(
+											function (_) {
+												return _.x;
+											}),
+										y: sum(
+											function (_) {
+												return _.y;
+											})
+									}) * delta) * 200)
 							});
 					},
 					gameState.players)
@@ -6302,9 +6327,12 @@ var _user$project$GameLogic$stepPlayers = F2(
 var _user$project$GameLogic$gameStep = F2(
 	function (delta, gameState) {
 		return A2(
-			_user$project$GameLogic$checkPlayerCollisions,
+			_user$project$GameLogic$checkDeath,
 			delta,
-			A2(_user$project$GameLogic$stepPlayers, delta, gameState));
+			A2(
+				_user$project$GameLogic$checkPlayerCollisions,
+				delta,
+				A2(_user$project$GameLogic$stepPlayers, delta, gameState)));
 	});
 
 var _user$project$JsonEncode$encodeYou = function (you) {
@@ -6391,7 +6419,23 @@ var _user$project$JsonEncode$encodePlayer = function (player) {
 									_0: 'id',
 									_1: _elm_lang$core$Json_Encode$string(player.id)
 								},
-								_1: {ctor: '[]'}
+								_1: {
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'health',
+										_1: _elm_lang$core$Json_Encode$float(player.health)
+									},
+									_1: {
+										ctor: '::',
+										_0: {
+											ctor: '_Tuple2',
+											_0: 'maxHealth',
+											_1: _elm_lang$core$Json_Encode$float(player.maxHealth)
+										},
+										_1: {ctor: '[]'}
+									}
+								}
 							}
 						}
 					}
@@ -6542,7 +6586,9 @@ var _user$project$MsgHandler$handleMsg = F2(
 								turning: 0,
 								vel: 0,
 								name: _p12,
-								id: _p15
+								id: _p15,
+								health: _user$project$Base$level1Health,
+								maxHealth: _user$project$Base$level1Health
 							},
 							_1: state.players
 						}

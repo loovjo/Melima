@@ -36,7 +36,8 @@ var app = Elm.Main.embed(node, {webSocketUrl: "ws://" + document.location.hostna
 console.log(app.ports)
 app.ports.prompt.subscribe(function(text) {
     res = prompt(text)
-    app.ports.promptResult.send(res)
+    if (typeof(res) === "string")
+        app.ports.promptResult.send(res)
 })
 
         </script>

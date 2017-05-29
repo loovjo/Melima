@@ -18,6 +18,8 @@ handleMsg (userId, msg) state =
                             , vel = 0
                             , name = name
                             , id = userId
+                            , health = level1Health
+                            , maxHealth = level1Health
                             } :: state.players}
                     else state
                 _ ->

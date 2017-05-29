@@ -7,6 +7,7 @@ gameStep : Float -> GameState -> GameState
 gameStep delta gameState =
     stepPlayers delta gameState
     |> checkPlayerCollisions delta
+    |> checkDeath delta
 
 
 stepPlayers : Float -> GameState -> GameState
@@ -55,6 +56,13 @@ checkPlayerCollisions delta gameState =
                     in 
                         { player 
                         | pos = {x = player.pos.x - sum .x, y = player.pos.y - sum .y}
+                        , health = player.health - dist {x = sum .x, y = sum .y} * delta * 200
                         }
                 ) gameState.players
         }
+
+checkDeath : Float -> GameState -> GameState
+checkDeath delta gameState =
+    { gameState
+    | players = List.filter (\player -> player.health > 0) gameState.players
+    }

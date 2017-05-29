@@ -39,33 +39,51 @@ view model =
             ]
 renderPlayer : Model -> Player -> List (S.Svg Msg)
 renderPlayer model player =
-    [ S.circle 
-        [ Sa.cx <| toString <| .x <| toPixels model player.pos
-        , Sa.cy <| toString <| .y <| toPixels model player.pos
-        , Sa.r <| toString model.zoom
-        , Sa.fill <| case model.you of
-            Just you -> if you.id == player.id then "blue" else "red"
-            Nothing -> "#1d54ad"
-        , Sa.stroke "#000000"
-        , Sa.strokeWidth "3"
-        ] []
-    , S.line
-        (
-            let (dx, dy) = fromPolar (model.zoom, player.rotation)
-            in
-                [ Sa.x1 <| toString <| .x <| toPixels model player.pos
-                , Sa.y1 <| toString <| .y <| toPixels model player.pos
-                , Sa.x2 <| toString <| dx + (.x <| toPixels model player.pos)
-                , Sa.y2 <| toString <| dy + (.y <| toPixels model player.pos)
-                , Sa.strokeWidth "3"
-                , Sa.stroke "#000000"
-                ]
-        ) []
-    , S.text_
-        [ Sa.x <| toString <| .x <| toPixels model player.pos
-        , Sa.y <| toString <| model.zoom * 2.5 + (.y <| toPixels model player.pos)
-        , Sa.fontFamily "Verdana"
-        , Sa.textAnchor "middle"
-        , Sa.fontSize <| toString model.zoom
-        ] [S.text player.name]
-    ]
+    let (cx, cy) = (.x <| toPixels model player.pos, .y <| toPixels model player.pos)
+    in
+        [ S.circle 
+            [ Sa.cx <| toString cx
+            , Sa.cy <| toString cy
+            , Sa.r <| toString model.zoom
+            , Sa.fill <| case model.you of
+                Just you -> if you.id == player.id then "blue" else "red"
+                Nothing -> "#1d54ad"
+            , Sa.stroke "#000000"
+            , Sa.strokeWidth "3"
+            ] []
+        , S.line -- Health
+            [ Sa.x1 <| toString <| cx - 5 * model.zoom - 2
+            , Sa.y1 <| toString <| cy - 2 * model.zoom
+            , Sa.x2 <| toString <| cx + 5 * model.zoom + 2
+            , Sa.y2 <| toString <| cy - 2 * model.zoom
+            , Sa.strokeWidth "7"
+            , Sa.stroke "#000000"
+            ] []
+        , S.line -- Health
+            [ Sa.x1 <| toString <| cx - 5 * model.zoom
+            , Sa.y1 <| toString <| cy - 2 * model.zoom
+            , Sa.x2 <| toString <| cx - 5 * model.zoom + model.zoom * 10 * player.health / player.maxHealth
+            , Sa.y2 <| toString <| cy - 2 * model.zoom
+            , Sa.strokeWidth "3"
+            , Sa.stroke "#FF0000"
+            ] []
+        , S.line
+            (
+                let (dx, dy) = fromPolar (model.zoom, player.rotation)
+                in
+                    [ Sa.x1 <| toString cx
+                    , Sa.y1 <| toString cy
+                    , Sa.x2 <| toString <| dx + cx
+                    , Sa.y2 <| toString <| dy + cy
+                    , Sa.strokeWidth "3"
+                    , Sa.stroke "#000000"
+                    ]
+            ) []
+        , S.text_
+            [ Sa.x <| toString cx
+            , Sa.y <| toString <| model.zoom * 2.5 + cy
+            , Sa.fontFamily "Verdana"
+            , Sa.textAnchor "middle"
+            , Sa.fontSize <| toString model.zoom
+            ] [S.text player.name]
+        ]

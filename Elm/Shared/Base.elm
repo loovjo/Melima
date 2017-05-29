@@ -5,6 +5,9 @@ module Base exposing (..)
 
 infixr 2 !!
 
+level1Health : Float
+level1Health = 20
+
 -- A useful command to avoid the ugly
 -- [ a, b, c ] ++
 --      case d of
@@ -37,6 +40,8 @@ type alias Player =
     , vel : Float
     , name : String
     , id : String
+    , health : Float
+    , maxHealth : Float
     }
 
 type alias You =
