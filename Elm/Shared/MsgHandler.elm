@@ -10,7 +10,7 @@ handleMsg (userId, msg) state =
         Just req ->
             case req of
                 Make name ->
-                    if String.length name > 0 then
+                    if String.length name > 0 && String.length name < 30 then
                         { state | players = 
                             { pos = Position 0 0
                             , rotation = 0

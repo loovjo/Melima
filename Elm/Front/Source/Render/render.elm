@@ -66,5 +66,6 @@ renderPlayer model player =
         , Sa.y <| toString <| model.zoom * 2.5 + (.y <| toPixels model player.pos)
         , Sa.fontFamily "Verdana"
         , Sa.textAnchor "middle"
+        , Sa.fontSize <| toString model.zoom
         ] [S.text player.name]
     ]

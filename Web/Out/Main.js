@@ -11277,9 +11277,11 @@ var _loovjo$traffic$MsgHandler$handleMsg = F2(
 			var _p11 = _p14;
 			if (_p11.ctor === 'Make') {
 				var _p12 = _p11._0;
-				return (_elm_lang$core$Native_Utils.cmp(
+				return ((_elm_lang$core$Native_Utils.cmp(
 					_elm_lang$core$String$length(_p12),
-					0) > 0) ? _elm_lang$core$Native_Utils.update(
+					0) > 0) && (_elm_lang$core$Native_Utils.cmp(
+					_elm_lang$core$String$length(_p12),
+					30) < 0)) ? _elm_lang$core$Native_Utils.update(
 					state,
 					{
 						players: {
@@ -11423,10 +11425,40 @@ var _loovjo$traffic$Update_Keyboard$keyDown = F2(
 									_1: {ctor: '[]'}
 								});
 						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								model,
-								{ctor: '[]'});
+							if (_elm_lang$core$Native_Utils.eq(button, 'Z')) {
+								return A2(
+									_elm_lang$core$Platform_Cmd_ops['!'],
+									_elm_lang$core$Native_Utils.update(
+										model,
+										{zoom: model.zoom / 1.2}),
+									{ctor: '[]'});
+							} else {
+								if (_elm_lang$core$Native_Utils.eq(button, '0')) {
+									return A2(
+										_elm_lang$core$Platform_Cmd_ops['!'],
+										_elm_lang$core$Native_Utils.update(
+											model,
+											{
+												zoom: 10,
+												scroll: A2(_loovjo$traffic$Base$Position, 0, 0)
+											}),
+										{ctor: '[]'});
+								} else {
+									if (_elm_lang$core$Native_Utils.eq(button, 'X')) {
+										return A2(
+											_elm_lang$core$Platform_Cmd_ops['!'],
+											_elm_lang$core$Native_Utils.update(
+												model,
+												{zoom: model.zoom * 1.2}),
+											{ctor: '[]'});
+									} else {
+										return A2(
+											_elm_lang$core$Platform_Cmd_ops['!'],
+											model,
+											{ctor: '[]'});
+									}
+								}
+							}
 						}
 					}
 				}
@@ -11871,7 +11903,12 @@ var _loovjo$traffic$Render_Render$renderPlayer = F2(
 									_1: {
 										ctor: '::',
 										_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
-										_1: {ctor: '[]'}
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$fontSize(
+												_elm_lang$core$Basics$toString(model.zoom)),
+											_1: {ctor: '[]'}
+										}
 									}
 								}
 							}
@@ -12041,7 +12078,7 @@ var _loovjo$traffic$Main$init = function (flags) {
 			showDebug: false,
 			err: _elm_lang$core$Maybe$Nothing,
 			webSocketUrl: flags.webSocketUrl,
-			scroll: A2(_loovjo$traffic$Base$Position, 3, 3),
+			scroll: A2(_loovjo$traffic$Base$Position, 0, 0),
 			scrollCenter: _elm_lang$core$Maybe$Nothing,
 			zoom: 10,
 			sideScroll: 100,

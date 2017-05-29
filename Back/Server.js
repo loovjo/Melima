@@ -6527,9 +6527,11 @@ var _user$project$MsgHandler$handleMsg = F2(
 			var _p11 = _p14;
 			if (_p11.ctor === 'Make') {
 				var _p12 = _p11._0;
-				return (_elm_lang$core$Native_Utils.cmp(
+				return ((_elm_lang$core$Native_Utils.cmp(
 					_elm_lang$core$String$length(_p12),
-					0) > 0) ? _elm_lang$core$Native_Utils.update(
+					0) > 0) && (_elm_lang$core$Native_Utils.cmp(
+					_elm_lang$core$String$length(_p12),
+					30) < 0)) ? _elm_lang$core$Native_Utils.update(
 					state,
 					{
 						players: {

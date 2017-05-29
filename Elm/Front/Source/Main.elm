@@ -40,7 +40,7 @@ init flags =
         , err = Nothing
         , webSocketUrl = flags.webSocketUrl
 
-        , scroll = Position 3 3
+        , scroll = Position 0 0
         , scrollCenter = Nothing
         , zoom = 10
 
