@@ -30,7 +30,7 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     (
-        { gameState = GameState []
+        { gameState = GameState [] []
         , you = Nothing
         , lastTime = Nothing
 

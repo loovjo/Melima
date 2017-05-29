@@ -15,7 +15,7 @@ main = Platform.program {init = init, update = update, subscriptions = subs}
 init : ( Model, Cmd msg )
 init =
     { clientIds = []
-    , gameState = GameState []
+    , gameState = GameState [] []
     , lastTime = Nothing
     } ! []
 

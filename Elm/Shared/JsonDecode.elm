@@ -29,6 +29,7 @@ decodeGameState : Decoder GameState
 decodeGameState =
     P.decode GameState
         |> P.required "players" (Decode.list decodePlayer)
+        |> P.required "entities" (Decode.list decodeEntity)
 
 decodePlayer : Decoder Player
 decodePlayer =
@@ -42,3 +43,12 @@ decodePlayer =
         |> P.required "health" Decode.float
         |> P.required "maxHealth" Decode.float
 
+decodeEntity : Decoder Entity
+decodeEntity =
+    Decode.oneOf
+    [ P.decode ZapEntity
+        |> P.required "pos" decodePosition
+        |> P.required "rot" Decode.float
+        |> P.required "vel" Decode.float
+        |> P.required "ageLeft" Decode.float
+    ]

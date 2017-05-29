@@ -29,7 +29,20 @@ encodeGameState : GameState -> Value
 encodeGameState state =
     object
         [ ("players", list <| List.map encodePlayer state.players)
+        , ("entities", list <| List.map encodeEntity state.entities)
         ]
+
+encodeEntity : Entity -> Value
+encodeEntity entity =
+    case entity of
+        ZapEntity pos rot vel ageLeft ->
+            object
+                [ ("type", string "Zap")
+                , ("pos", encodePosition pos)
+                , ("rot", float rot)
+                , ("vel", float vel)
+                , ("ageLeft", float ageLeft)
+                ]
 
 encodePlayer : Player -> Value
 encodePlayer player =

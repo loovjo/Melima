@@ -18,12 +18,14 @@ keyDown model button =
         model ! [wsSend "walk 10"]
     else if button == "S" then
         model ! [wsSend "walk -7"]
-    else if button == "Z" then
+    else if button == "I" then
         { model | zoom = model.zoom / 1.2 } ! []
+    else if button == "O" then
+        { model | zoom = model.zoom * 1.2 } ! []
     else if button == "0" then
         { model | zoom = 10, scroll = Position 0 0 } ! []
-    else if button == "X" then
-        { model | zoom = model.zoom * 1.2 } ! []
+    else if button == "Z" then
+        model ! [wsSend "zap 30"]
     else model ! []
 
 

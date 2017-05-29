@@ -31,7 +31,11 @@ type alias Position = {x : Float, y : Float}
 
 type alias GameState =
     { players : List Player
+    , entities : List Entity
     }
+
+type Entity =
+    ZapEntity Position Float Float Float -- pos rot vel ageLeft
 
 type alias Player =
     { pos : Position

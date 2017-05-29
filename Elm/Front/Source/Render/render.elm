@@ -20,9 +20,9 @@ view model =
                 , Sa.height <| toString <| size.y
                 , Sa.style "background: #337733"
                 ] <|
-                List.concatMap (renderPlayer model) model.gameState.players
-                ++
-                case model.you of
+                   List.concatMap (renderPlayer model) model.gameState.players
+                ++ List.concatMap (renderEntity model) model.gameState.entities
+                ++ case model.you of
                     Just you ->
                         if (List.length <| List.filter ((==) you.id << .id) model.gameState.players) == 0
                             then
@@ -87,3 +87,20 @@ renderPlayer model player =
             , Sa.fontSize <| toString model.zoom
             ] [S.text player.name]
         ]
+
+renderEntity : Model -> Entity -> List (S.Svg Msg)
+renderEntity model entity =
+    case entity of
+        ZapEntity pos rot vel ageLeft ->
+            let (dx, dy) = fromPolar (model.zoom, rot)
+                (x, y) = (.x <| toPixels model pos, .y <| toPixels model pos)
+            in [ S.line
+                [ Sa.x1 <| toString x
+                , Sa.y1 <| toString y
+                , Sa.x2 <| toString <| x + dx
+                , Sa.y2 <| toString <| y + dy
+                , Sa.strokeWidth "3"
+                , Sa.stroke "#00FFFF"
+                ] []
+            ]
+

@@ -22,6 +22,14 @@ handleMsg (userId, msg) state =
                             , maxHealth = level1Health
                             } :: state.players}
                     else state
+                Zap speed ->
+                    let players = List.filter (\player -> player.id == userId) state.players
+                    in case List.head players of
+                        Just player ->
+                            { state
+                            | entities = (ZapEntity player.pos player.rotation speed 0.3) :: state.entities
+                            }
+                        Nothing -> state
                 _ ->
                     let updateFn =
                         case req of
@@ -38,6 +46,7 @@ type Req
     = Make String
     | Rotate Float
     | Walk Float
+    | Zap Float
 
 parse : String -> Maybe Req
 parse msg =
@@ -56,5 +65,6 @@ reqs =
     [ ("make", (Maybe.map Make) << Result.toMaybe << Ok)
     , ("rot", (Maybe.map Rotate) << Result.toMaybe << String.toFloat)
     , ("walk", (Maybe.map Walk) << Result.toMaybe << String.toFloat)
+    , ("zap", (Maybe.map Zap) << Result.toMaybe << String.toFloat)
     ]
 

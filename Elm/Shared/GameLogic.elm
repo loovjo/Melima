@@ -5,9 +5,11 @@ import Base exposing (..)
 
 gameStep : Float -> GameState -> GameState
 gameStep delta gameState =
-    stepPlayers delta gameState
-    |> checkPlayerCollisions delta
-    |> checkDeath delta
+    gameState
+        |> stepPlayers delta
+        |> stepEntities delta
+        |> checkPlayerCollisions delta
+        |> checkDeath delta
 
 
 stepPlayers : Float -> GameState -> GameState
@@ -25,6 +27,23 @@ playerStep delta player =
         in {x = player.pos.x + dx, y = player.pos.y + dy}
     , rotation = player.rotation + player.turning * delta
     }
+
+stepEntities : Float -> GameState -> GameState
+stepEntities delta gameState =
+    { gameState
+    | entities = List.filterMap (entityStep delta) gameState.entities
+    }
+
+entityStep : Float -> Entity -> Maybe Entity
+entityStep delta entity =
+    case entity of
+        ZapEntity pos rot vel ageLeft ->
+            if ageLeft < 0 
+                then Nothing
+                else
+                    let (dx, dy) = fromPolar (vel * delta, rot)
+                    in
+                        Just <| ZapEntity {x = pos.x + dx, y = pos.y + dy} rot vel (ageLeft - delta)
 
 checkPlayerCollisions : Float -> GameState -> GameState
 checkPlayerCollisions delta gameState =

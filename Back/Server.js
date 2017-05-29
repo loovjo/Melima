@@ -6195,9 +6195,10 @@ var _user$project$Base$Position = F2(
 	function (a, b) {
 		return {x: a, y: b};
 	});
-var _user$project$Base$GameState = function (a) {
-	return {players: a};
-};
+var _user$project$Base$GameState = F2(
+	function (a, b) {
+		return {players: a, entities: b};
+	});
 var _user$project$Base$Player = F8(
 	function (a, b, c, d, e, f, g, h) {
 		return {pos: a, rotation: b, turning: c, vel: d, name: e, id: f, health: g, maxHealth: h};
@@ -6209,6 +6210,10 @@ var _user$project$Base$You = F2(
 var _user$project$Base$TotalState = F2(
 	function (a, b) {
 		return {state: a, you: b};
+	});
+var _user$project$Base$ZapEntity = F4(
+	function (a, b, c, d) {
+		return {ctor: 'ZapEntity', _0: a, _1: b, _2: c, _3: d};
 	});
 
 var _user$project$GameLogic$checkDeath = F2(
@@ -6298,16 +6303,50 @@ var _user$project$GameLogic$checkPlayerCollisions = F2(
 					gameState.players)
 			});
 	});
+var _user$project$GameLogic$entityStep = F2(
+	function (delta, entity) {
+		var _p4 = entity;
+		var _p9 = _p4._2;
+		var _p8 = _p4._1;
+		var _p7 = _p4._0;
+		var _p6 = _p4._3;
+		if (_elm_lang$core$Native_Utils.cmp(_p6, 0) < 0) {
+			return _elm_lang$core$Maybe$Nothing;
+		} else {
+			var _p5 = _elm_lang$core$Basics$fromPolar(
+				{ctor: '_Tuple2', _0: _p9 * delta, _1: _p8});
+			var dx = _p5._0;
+			var dy = _p5._1;
+			return _elm_lang$core$Maybe$Just(
+				A4(
+					_user$project$Base$ZapEntity,
+					{x: _p7.x + dx, y: _p7.y + dy},
+					_p8,
+					_p9,
+					_p6 - delta));
+		}
+	});
+var _user$project$GameLogic$stepEntities = F2(
+	function (delta, gameState) {
+		return _elm_lang$core$Native_Utils.update(
+			gameState,
+			{
+				entities: A2(
+					_elm_lang$core$List$filterMap,
+					_user$project$GameLogic$entityStep(delta),
+					gameState.entities)
+			});
+	});
 var _user$project$GameLogic$playerStep = F2(
 	function (delta, player) {
 		return _elm_lang$core$Native_Utils.update(
 			player,
 			{
 				pos: function () {
-					var _p4 = _elm_lang$core$Basics$fromPolar(
+					var _p10 = _elm_lang$core$Basics$fromPolar(
 						{ctor: '_Tuple2', _0: player.vel * delta, _1: player.rotation});
-					var dx = _p4._0;
-					var dy = _p4._1;
+					var dx = _p10._0;
+					var dy = _p10._1;
 					return {x: player.pos.x + dx, y: player.pos.y + dy};
 				}(),
 				rotation: player.rotation + (player.turning * delta)
@@ -6332,7 +6371,10 @@ var _user$project$GameLogic$gameStep = F2(
 			A2(
 				_user$project$GameLogic$checkPlayerCollisions,
 				delta,
-				A2(_user$project$GameLogic$stepPlayers, delta, gameState)));
+				A2(
+					_user$project$GameLogic$stepEntities,
+					delta,
+					A2(_user$project$GameLogic$stepPlayers, delta, gameState))));
 	});
 
 var _user$project$JsonEncode$encodeYou = function (you) {
@@ -6372,6 +6414,51 @@ var _user$project$JsonEncode$encodePosition = function (pos) {
 					_1: _elm_lang$core$Json_Encode$float(pos.y)
 				},
 				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$JsonEncode$encodeEntity = function (entity) {
+	var _p0 = entity;
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'type',
+				_1: _elm_lang$core$Json_Encode$string('Zap')
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'pos',
+					_1: _user$project$JsonEncode$encodePosition(_p0._0)
+				},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'rot',
+						_1: _elm_lang$core$Json_Encode$float(_p0._1)
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'vel',
+							_1: _elm_lang$core$Json_Encode$float(_p0._2)
+						},
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'ageLeft',
+								_1: _elm_lang$core$Json_Encode$float(_p0._3)
+							},
+							_1: {ctor: '[]'}
+						}
+					}
+				}
 			}
 		});
 };
@@ -6453,7 +6540,16 @@ var _user$project$JsonEncode$encodeGameState = function (state) {
 				_1: _elm_lang$core$Json_Encode$list(
 					A2(_elm_lang$core$List$map, _user$project$JsonEncode$encodePlayer, state.players))
 			},
-			_1: {ctor: '[]'}
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'entities',
+					_1: _elm_lang$core$Json_Encode$list(
+						A2(_elm_lang$core$List$map, _user$project$JsonEncode$encodeEntity, state.entities))
+				},
+				_1: {ctor: '[]'}
+			}
 		});
 };
 var _user$project$JsonEncode$encodeTotalState = function (tstate) {
@@ -6477,6 +6573,9 @@ var _user$project$JsonEncode$encodeTotalState = function (tstate) {
 		});
 };
 
+var _user$project$MsgHandler$Zap = function (a) {
+	return {ctor: 'Zap', _0: a};
+};
 var _user$project$MsgHandler$Walk = function (a) {
 	return {ctor: 'Walk', _0: a};
 };
@@ -6525,104 +6624,141 @@ var _user$project$MsgHandler$reqs = {
 							_elm_lang$core$String$toFloat(_p2)));
 				}
 			},
-			_1: {ctor: '[]'}
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'zap',
+					_1: function (_p3) {
+						return A2(
+							_elm_lang$core$Maybe$map,
+							_user$project$MsgHandler$Zap,
+							_elm_lang$core$Result$toMaybe(
+								_elm_lang$core$String$toFloat(_p3)));
+					}
+				},
+				_1: {ctor: '[]'}
+			}
 		}
 	}
 };
-var _user$project$MsgHandler$parseTokens = function (_p3) {
-	var _p4 = _p3;
+var _user$project$MsgHandler$parseTokens = function (_p4) {
+	var _p5 = _p4;
 	return _elm_lang$core$List$head(
 		A2(
 			_elm_lang$core$List$filterMap,
-			function (_p5) {
-				var _p6 = _p5;
-				return _elm_lang$core$Native_Utils.eq(_p4._0, _p6._0) ? _p6._1(_p4._1) : _elm_lang$core$Maybe$Nothing;
+			function (_p6) {
+				var _p7 = _p6;
+				return _elm_lang$core$Native_Utils.eq(_p5._0, _p7._0) ? _p7._1(_p5._1) : _elm_lang$core$Maybe$Nothing;
 			},
 			_user$project$MsgHandler$reqs));
 };
 var _user$project$MsgHandler$parse = function (msg) {
 	var tokens = A2(_elm_lang$core$String$split, ' ', msg);
-	var _p7 = {
+	var _p8 = {
 		ctor: '_Tuple2',
 		_0: _elm_lang$core$List$head(tokens),
 		_1: _elm_lang$core$List$tail(tokens)
 	};
-	if (((_p7.ctor === '_Tuple2') && (_p7._0.ctor === 'Just')) && (_p7._1.ctor === 'Just')) {
+	if (((_p8.ctor === '_Tuple2') && (_p8._0.ctor === 'Just')) && (_p8._1.ctor === 'Just')) {
 		return _user$project$MsgHandler$parseTokens(
 			{
 				ctor: '_Tuple2',
-				_0: _p7._0._0,
-				_1: A2(_elm_lang$core$String$join, ' ', _p7._1._0)
+				_0: _p8._0._0,
+				_1: A2(_elm_lang$core$String$join, ' ', _p8._1._0)
 			});
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}
 };
 var _user$project$MsgHandler$handleMsg = F2(
-	function (_p8, state) {
-		var _p9 = _p8;
-		var _p15 = _p9._0;
-		var pmsg = _user$project$MsgHandler$parse(_p9._1);
-		var _p10 = pmsg;
-		if (_p10.ctor === 'Nothing') {
+	function (_p9, state) {
+		var _p10 = _p9;
+		var _p18 = _p10._0;
+		var pmsg = _user$project$MsgHandler$parse(_p10._1);
+		var _p11 = pmsg;
+		if (_p11.ctor === 'Nothing') {
 			return state;
 		} else {
-			var _p14 = _p10._0;
-			var _p11 = _p14;
-			if (_p11.ctor === 'Make') {
-				var _p12 = _p11._0;
-				return ((_elm_lang$core$Native_Utils.cmp(
-					_elm_lang$core$String$length(_p12),
-					0) > 0) && (_elm_lang$core$Native_Utils.cmp(
-					_elm_lang$core$String$length(_p12),
-					30) < 0)) ? _elm_lang$core$Native_Utils.update(
-					state,
-					{
-						players: {
-							ctor: '::',
-							_0: {
-								pos: A2(_user$project$Base$Position, 0, 0),
-								rotation: 0,
-								turning: 0,
-								vel: 0,
-								name: _p12,
-								id: _p15,
-								health: _user$project$Base$level1Health,
-								maxHealth: _user$project$Base$level1Health
-							},
-							_1: state.players
-						}
-					}) : state;
-			} else {
-				var updateFn = function () {
-					var _p13 = _p14;
-					switch (_p13.ctor) {
-						case 'Rotate':
-							return function (x) {
-								return _elm_lang$core$Native_Utils.update(
-									x,
-									{turning: _p13._0});
-							};
-						case 'Walk':
-							return function (x) {
-								return _elm_lang$core$Native_Utils.update(
-									x,
-									{vel: _p13._0});
-							};
-						default:
-							return _elm_lang$core$Basics$identity;
+			var _p17 = _p11._0;
+			var _p12 = _p17;
+			switch (_p12.ctor) {
+				case 'Make':
+					var _p13 = _p12._0;
+					return ((_elm_lang$core$Native_Utils.cmp(
+						_elm_lang$core$String$length(_p13),
+						0) > 0) && (_elm_lang$core$Native_Utils.cmp(
+						_elm_lang$core$String$length(_p13),
+						30) < 0)) ? _elm_lang$core$Native_Utils.update(
+						state,
+						{
+							players: {
+								ctor: '::',
+								_0: {
+									pos: A2(_user$project$Base$Position, 0, 0),
+									rotation: 0,
+									turning: 0,
+									vel: 0,
+									name: _p13,
+									id: _p18,
+									health: _user$project$Base$level1Health,
+									maxHealth: _user$project$Base$level1Health
+								},
+								_1: state.players
+							}
+						}) : state;
+				case 'Zap':
+					var players = A2(
+						_elm_lang$core$List$filter,
+						function (player) {
+							return _elm_lang$core$Native_Utils.eq(player.id, _p18);
+						},
+						state.players);
+					var _p14 = _elm_lang$core$List$head(players);
+					if (_p14.ctor === 'Just') {
+						var _p15 = _p14._0;
+						return _elm_lang$core$Native_Utils.update(
+							state,
+							{
+								entities: {
+									ctor: '::',
+									_0: A4(_user$project$Base$ZapEntity, _p15.pos, _p15.rotation, _p12._0, 0.3),
+									_1: state.entities
+								}
+							});
+					} else {
+						return state;
 					}
-				}();
-				return _elm_lang$core$Native_Utils.update(
-					state,
-					{
-						players: A2(
-							_elm_lang$core$List$map,
-							function (player) {
-								return _elm_lang$core$Native_Utils.eq(player.id, _p15) ? updateFn(player) : player;
-							},
-							state.players)
-					});
+				default:
+					var updateFn = function () {
+						var _p16 = _p17;
+						switch (_p16.ctor) {
+							case 'Rotate':
+								return function (x) {
+									return _elm_lang$core$Native_Utils.update(
+										x,
+										{turning: _p16._0});
+								};
+							case 'Walk':
+								return function (x) {
+									return _elm_lang$core$Native_Utils.update(
+										x,
+										{vel: _p16._0});
+								};
+							default:
+								return _elm_lang$core$Basics$identity;
+						}
+					}();
+					return _elm_lang$core$Native_Utils.update(
+						state,
+						{
+							players: A2(
+								_elm_lang$core$List$map,
+								function (player) {
+									return _elm_lang$core$Native_Utils.eq(player.id, _p18) ? updateFn(player) : player;
+								},
+								state.players)
+						});
 			}
 		}
 	});
@@ -6640,7 +6776,9 @@ var _user$project$Server$init = A2(
 	_elm_lang$core$Platform_Cmd_ops['!'],
 	{
 		clientIds: {ctor: '[]'},
-		gameState: _user$project$Base$GameState(
+		gameState: A2(
+			_user$project$Base$GameState,
+			{ctor: '[]'},
 			{ctor: '[]'}),
 		lastTime: _elm_lang$core$Maybe$Nothing
 	},
